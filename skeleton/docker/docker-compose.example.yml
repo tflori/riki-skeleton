@@ -1,0 +1,46 @@
+version: "2.0"
+
+volumes:
+  postgres:
+
+services:
+  composer:
+    image: iras/php7-composer:1
+    user: "$UID"
+    working_dir: "/<?= $basePath ?>"
+    entrypoint: /usr/bin/composer
+    command: info
+    volumes:
+      - "./:/<?= $basePath ?>"
+      - "${HOME}/.composer/cache:/composer/cache"
+
+  php:
+    build:
+      context: "."
+      dockerfile: "docker/php/Dockerfile"
+    working_dir: "/<?= $basePath ?>"
+    volumes:
+      - ".:/<?= $basePath ?>"
+      - "./storage/logs:/var/log/php"
+      - "./docker/php/xdebug.ini:/etc/php7/conf.d/xdebug.ini"
+      - "./docker/php/debug.sh:/usr/bin/debug"
+    environment:
+      - "UID=$UID"
+      - "GID=$GID"
+      - "APP_ENV=development"
+
+  nginx:
+    build:
+      context: "."
+      dockerfile: "docker/nginx/Dockerfile"
+    depends_on:
+      - "php"
+    volumes:
+      - "./public:/<?= $basePath ?>/public"
+      - "./storage/logs:/var/log/httpd"
+      - "./docker/nginx/server.conf:/etc/nginx/conf.d/server/<?= $basePath ?>.conf"
+    ports:
+      - "8080:8080"
+    environment:
+      - "UID=$UID"
+      - "GID=$GID"

@@ -1,0 +1,203 @@
+#!/usr/bin/php
+<?php
+
+require __DIR__ . '/../vendor/autoload.php';
+
+$vars = [];
+
+$baseName = basename(dirname(realpath(__DIR__)));
+$vars['baseName'] = $baseName;
+$vars['binaryFile'] = $binaryFile = $baseName;
+
+$projectName = get_current_user() . '/' . $baseName;
+$vars['projectName'] = ask('What\'s the name of your project?', $projectName);
+
+$sourceNamespace = studlyCase($baseName);
+$vars['sourceNamespace'] = ask(
+    'What\'s the namespace for your sources?',
+    $sourceNamespace,
+    createValidator('namespace', 'required')
+);
+
+$answer = ask('Do you want to use docker?', 'y', ['y', 'n']);
+$vars['useDocker'] = $useDocker = $answer === 'y';
+
+
+if ($useDocker) {
+    $vars['basePath'] = $baseName;
+    provide('skeleton/docker/', $vars);
+}
+
+provide('skeleton/misc/', $vars);
+
+if (in_array('--exec', $_SERVER['argv'])) {
+    rename('bin/cli', 'bin/' . $binaryFile);
+} else {
+    printf('rename %s to %s' .PHP_EOL, 'bin/cli', 'bin/' . $binaryFile);
+}
+
+
+/**
+ * Ask the user a question
+ *
+ * @param string         $question
+ * @param mixed          $default
+ * @param array|callable $answers Pre defined answers or validator
+ * @return mixed
+ */
+function ask(string $question, $default = null, $answers = [])
+{
+    $validate = null;
+    if (is_callable($answers)) {
+        $validate = $answers;
+        $answers = [];
+    }
+    if (!empty($answers) && !in_array($default, $answers)) {
+        return $default;
+    }
+
+    echo $question . ' ';
+
+    if (!empty($answers)) {
+        echo '[ ' . implode(
+                ' / ',
+                array_map(
+                    function ($answer) use ($default) {
+                        return $answer == $default ? strtoupper($answer) : $answer;
+                    },
+                    $answers
+                )
+            ) . ' ] ';
+    } elseif (!empty($default)) {
+        echo '[ ' . $default . ' ] ';
+    }
+
+    $answer = trim(fgets(STDIN));
+    if ($answer === '') {
+        $answer = $default;
+    }
+
+    if (!empty($answers) && !in_array(strtolower($answer), $answers)) {
+        fwrite(STDERR, $answer . ' is not valid' . PHP_EOL . PHP_EOL);
+        return ask($question, $default, $answers);
+    } elseif ($validate && ($result = call_user_func($validate, $answer)) !== true) {
+        fwrite(STDERR, $answer . ' is not valid');
+        if ($result !== false) {
+            fwrite(STDERR, ' (' . $result . ')');
+        }
+        fwrite(STDERR, PHP_EOL . PHP_EOL);
+        return ask($question, $default, $validate);
+    }
+    echo PHP_EOL;
+    return !empty($answers) ? strtolower($answer) : $answer;
+}
+
+/**
+ * Convert snake_case, kebab-case and StudlyCase to camelCase
+ *
+ * @param string $str
+ * @return string
+ */
+function camelCase(string $str): string
+{
+    return preg_replace_callback('/[^a-z]([a-z])?/i', function ($match) {
+      return isset($match[1]) ? strtoupper($match[1]) : '';
+    }, lcfirst($str));
+}
+
+/**
+ * Convert snake_case, kebab-case and camelCase to StudlyCase
+ *
+ * @param string $str
+ * @return string
+ */
+function studlyCase(string $str): string
+{
+    return ucfirst(camelCase($str));
+}
+
+/**
+ * Create a function that validates $types
+ *
+ * @param string ...$types
+ * @return Closure
+ */
+function createValidator(...$types)
+{
+    return function ($value) use ($types) {
+        foreach ($types as $type) {
+            switch ($type) {
+                case 'namespace':
+                    if (!preg_match('/[A-Z][a-zA-Z0-9]*(\\[A-Z][a-zA-Z0-9]*)*/', $value)) {
+                        return 'has to start with uppercase letter and contain only letters and numbers';
+                    }
+                    break;
+                case 'required':
+                    if (empty($value)) {
+                        return 'cannot be empty';
+                    }
+            }
+        }
+
+        return true;
+    };
+}
+
+/**
+ * Provide $templatesPath with $vars
+ *
+ * @param $templatesPath
+ * @param $vars
+ */
+function provide($templatesPath, array $vars = [])
+{
+    /** @var SplFileInfo $fileInfo */
+    foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($templatesPath)) as $fileInfo) {
+        // skip directories
+        if ($fileInfo->isDir()) {
+            continue;
+        }
+
+        // determine target path
+        $target = substr($fileInfo->getPathname(), strlen($templatesPath));
+        printf('Generating %s from %s' . PHP_EOL, $target, $fileInfo->getPathname());
+
+        // create the parent directory
+        if (!file_exists(dirname($target))) {
+            if (in_array('--exec', $_SERVER['argv'])) {
+                mkdir(dirname($target), umask() ^ 0777, true);
+            } else {
+                printf('mkdir %s' . PHP_EOL, dirname($target));
+            }
+        }
+
+        $buffer = parse($fileInfo->getPathname(), $vars);
+
+        if (in_array('--exec', $_SERVER['argv'])) {
+            file_put_contents($target, $buffer);
+        } else {
+            printf('write %s' . PHP_EOL, $target);
+            if (in_array('--debug', $_SERVER['argv'])) {
+                $p = array_search('--debug', $_SERVER['argv']);
+                if (strpos($target, $_SERVER['argv'][$p + 1]) !== false) {
+                    echo $buffer . PHP_EOL;
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Parse $template as php using $vars
+ *
+ * @param $template
+ * @param $vars
+ * @return string
+ */
+function parse($template, $vars)
+{
+    ob_start();
+    extract($vars, EXTR_SKIP);
+    include($template);
+    return ob_get_clean();
+}
