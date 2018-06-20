@@ -2,8 +2,8 @@
 
 require __DIR__ . '/../vendor/autoload.php';
 
-$app = new App\Main;
-$app->bootstrapHttp();
-$response = $app->runHttp();
+$app = new \App\Application(realPath(__DIR__ . '/..'));
+$kernel = new \App\Http\Kernel();
+$response = $app->run($kernel);
 
 $response->send();

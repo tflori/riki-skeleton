@@ -2,7 +2,6 @@
 
 namespace App\Factory;
 
-use App\DI;
 use DependencyInjector\Factory\AbstractFactory;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
@@ -20,8 +19,8 @@ class Logger extends AbstractFactory
      */
     protected function build()
     {
-        $logPath = DI::environment()->logPath('/words-backend.log');
-        $handler = new StreamHandler($logPath, DI::config()->logLevel);
+        $logPath = $this->container->get('environment')->logPath('/riki.log');
+        $handler = new StreamHandler($logPath, $this->container->get('config')->logLevel);
         $handler->setFormatter(new LineFormatter(null, null, true));
         return new \Monolog\Logger('app', [ $handler ]);
     }

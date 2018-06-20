@@ -2,117 +2,42 @@
 
 namespace App;
 
-use DependencyInjector\Container;
-use Riki\Exception;
+use Http\Response;
+use Monolog\Logger;
+use Whoops;
+use Whoops\Handler\PlainTextHandler;
+use Whoops\Handler\PrettyPageHandler;
 
-class Application extends Container
+/**
+ * Class Application
+ *
+ * @package App
+ *
+ * @property-read Environment $environment
+ * @property-read Config $config
+ * @property-read Logger $logger
+ * @property-read Whoops\Run $whoops
+ * @property-read Response $response
+ */
+class Application extends \Riki\Application
 {
-    /** @var callable[] */
-    protected $bootstrappers = [];
-
-    /** @var string */
-    protected $basePath;
-
-    /** @var string  */
-    protected $fallbackEnvironment = 'App\Environment';
-
-    /** @var string  */
-    protected $environmentNamespace = 'App\Environment';
-
-    /** @var string */
-    protected $configClass = 'App\Config';
-
     public function __construct(string $basePath)
     {
-        parent::__construct();
-        $this->alias('container', Application::class);
-        $this->alias('container', 'app');
-        \DependencyInjector\DI::setContainer($this);
-
-        $this->basePath = $basePath;
-
-        $this->addBootstrappers(
-            [$this, 'detectEnvironment'],
-            [$this, 'loadConfig']
-        );
+        parent::__construct($basePath);
+        $this->addBootstrappers([$this, 'initWhoops']);
+        $this->registerNamespace('App\Factory');
     }
 
-    public function run(Kernel $kernel, ...$args)
+    public function initWhoops()
     {
-        $this->bootstrap(...$kernel->getBootstrappers());
-        return $kernel->handle(...$args);
-    }
+        $whoops = new Whoops\Run();
+        $handler = new PlainTextHandler();
+        $handler->setLogger($this->logger);
+        $handler->loggerOnly(true);
+        $whoops->pushHandler($handler);
+        $whoops->register();
+        $this->instance('whoops', $whoops);
 
-    protected function bootstrap(callable ...$kernelBootstrappers)
-    {
-        $bootstrappers = $this->getBootstrappers();
-        array_push($bootstrappers, ...$kernelBootstrappers);
-        foreach ($bootstrappers as $bootstrapper) {
-            try {
-                if (!$bootstrapper($this)) {
-                    throw new \Exception('Unknown error');
-                }
-            } catch (\Throwable | \Exception $ex) {
-                throw new Exception('Unexpected exception in bootstrap process', 0, $ex);
-            }
-        }
-    }
-
-    public function detectEnvironment(Application $app): bool
-    {
-        if ($app->has('environment')) {
-            return true;
-        }
-
-        $classes = [ $this->fallbackEnvironment ];
-        $appEnv = getenv('APP_ENV') ?: 'development';
-        $classes[] = $this->environmentNamespace . '\\' . ucfirst($appEnv);
-        if (PHP_SAPI === 'cli') {
-            $classes[] = $this->environmentNamespace . '\\' . ucfirst($appEnv) . 'Cli';
-        }
-        foreach (array_reverse($classes) as $class) {
-            if (class_exists($class)) {
-                $this->instance('environment', new $class);
-                $this->alias('environment', $this->fallbackEnvironment);
-                return true;
-            }
-        }
-
-        throw new Exception('No environment found');
-    }
-
-    public function loadConfig(Application $app): bool
-    {
-        if ($app->has('config')) {
-            return true;
-        }
-
-        /** @var \Riki\Environment $environment */
-        $environment = $this->get('environment');
-        if ($environment->canCacheConfig() && file_exists($environment->getConfigCachePath())) {
-            $config = unserialize(file_get_contents($environment->getConfigCachePath()));
-        } else {
-            $class = $this->configClass;
-            $config =  new $class($environment);
-        }
-
-        if (!$config) {
-            throw new Exception('Configuration not found');
-        }
-
-        $this->instance('config', $config);
-        $this->alias('config', $this->configClass);
         return true;
-    }
-
-    public function addBootstrappers(callable ...$bootstrapper)
-    {
-        array_push($this->bootstrappers, ...$bootstrapper);
-        return $this;
-    }
-
-    public function getBootstrappers()
-    {
-        return $this->bootstrappers;
     }
 }

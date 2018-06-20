@@ -6,3 +6,4 @@
 /skeleton/misc/composer.lock
 /skeleton/misc/docker-compose.yml
 /skeleton/misc/docker/
+/skeleton/misc/vendor

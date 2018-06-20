@@ -8,8 +8,9 @@ use GetOpt\ArgumentException;
 use GetOpt\ArgumentException\Missing;
 use GetOpt\GetOpt;
 use GetOpt\Option;
+use Whoops\Handler\PlainTextHandler;
 
-class Kernel extends \App\Kernel
+class Kernel extends \Riki\Kernel
 {
     /** @var GetOpt */
     protected $getOpt;
@@ -22,6 +23,7 @@ class Kernel extends \App\Kernel
     public function __construct()
     {
         $this->addBootstrappers(
+            [$this, 'initWhoops'],
             [$this, 'createGetOpt'],
             [$this, 'loadCommands']
         );
@@ -54,6 +56,13 @@ class Kernel extends \App\Kernel
         }
 
         return call_user_func($command->getHandler(), $getOpt);
+    }
+
+    public function initWhoops(Application $app): bool
+    {
+        $app->whoops->pushHandler(new PlainTextHandler());
+
+        return true;
     }
 
     public function createGetOpt(Application $app): bool
