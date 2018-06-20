@@ -1,0 +1,10 @@
+#!/usr/bin/env php
+<?php
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+$app = new \App\Application(realPath(__DIR__ . '/..'));
+$kernel = new \App\Cli\Kernel();
+$returnVar = $app->run($kernel);
+
+exit($returnVar);

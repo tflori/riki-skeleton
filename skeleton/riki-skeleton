@@ -1,0 +1,10 @@
+#!/usr/bin/php
+<?php
+
+use Skeleton\Skeleton;
+
+require __DIR__ . '/../vendor/autoload.php';
+require __DIR__ . '/Skeleton.php';
+
+$skeleton = new Skeleton();
+$skeleton->run();

@@ -1,10 +1,8 @@
 <?php
 
-namespace App\Environment;
+namespace App;
 
-use Riki\Environment;
-
-class Base extends Environment
+class Environment extends \Riki\Environment
 {
     public function storagePath(string $path = null): string
     {
@@ -19,5 +17,19 @@ class Base extends Environment
     {
         $path = $this->storagePath('cache/config.spo');
         return $path; // serialized php object
+    }
+
+    public function logPath(string $path = null): string
+    {
+        $logPath = $this->storagePath('logs');
+        if ($path) {
+            $logPath .= '/' . ltrim($path, '/');
+        }
+        return $logPath;
+    }
+
+    public function canShowErrors()
+    {
+        return false;
     }
 }

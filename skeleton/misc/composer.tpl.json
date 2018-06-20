@@ -1,5 +1,5 @@
 {
-  "name": "tflori/riki-test",
+  "name": "<?= $projectName ?>",
   "description": "",
   "type": "project",
   "license": "proprietary",
@@ -15,7 +15,8 @@
   },
   "autoload": {
     "psr-4": {
-      "App\\": "app"
+      "App\\": "app",
+      "<?= $sourceNamespace ?>\\": "src"
     }
   },
   "require-dev": {
@@ -28,12 +29,15 @@
     }
   },
   "scripts": {
-    "serve": "php -S localhost:8080 -t public public/routing.php",
+    "serve": "php -S localhost:8080 -t public public/routing.php"<?php if ($useDocker) : ?>,
     "start": "docker-compose up -d",
     "stop": "docker-compose stop",
     "cli": "docker-compose exec -T php <?= $binaryFile ?>",
     "debug-cli": "docker-compose exec -T php debug bin/<?= $binaryFile ?>",
     "test": "docker-compose exec -T php phpunit",
-    "debug-test": "docker-compose exec -T php debug bin/phpunit"
+    "debug-test": "docker-compose exec -T php debug bin/phpunit"<?php else : ?>,
+    "cli": "<?= $binaryFile ?>"
+    "test": "phpunit"<?php endif; ?>
+
   }
 }

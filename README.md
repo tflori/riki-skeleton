@@ -18,6 +18,17 @@ develop on linux but mac would also be fine - we recommend docker and in windows
 
 ```console
 tflori@host $ composer create-project tflori/riki-skeleton projects/riki/community
+...
+#############################################################
+# Thanks for using riki-skeleton!                           #
+#                                                           #
+# Unfortunately composer is still not able to pass stdin to #
+# the post-create script. And because we need to ask you a  #
+# few questions you have to start the setup manually by     #
+# executing:                                                #
+# ./setup                                                   #
+#############################################################
+tflori@host $ ./setup
 What's the name of your project? [ tflori/community ] tflori/riki-community
 
 What's the namespace for your sources? [Community] 
