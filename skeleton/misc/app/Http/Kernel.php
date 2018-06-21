@@ -3,6 +3,7 @@
 namespace App\Http;
 
 use App\Application;
+use DependencyInjector\DI;
 use Http\HttpRequest;
 use Http\HttpResponse;
 use Http\Request;
@@ -26,29 +27,29 @@ class Kernel extends \Riki\Kernel
             $request = new HttpRequest($_GET, $_POST, $_COOKIE, $_FILES, $_SERVER, file_get_contents('php://input'));
         }
 
-        throw new \InvalidArgumentException('What?');
-
         // @todo route the request to a proper controller that returns a response
-        return new HttpResponse();
+        return DI::response();
     }
 
     public function initWhoops(Application $app): bool
     {
-        $previousHandler = $app->whoops->popHandler();
         if ($app->environment->canShowErrors()) {
             $handler = new PrettyPageHandler();
             // $handler->setEditor(...)
-            $app->whoops->pushHandler($handler);
+            $app->appendWhoopsHandler($handler);
         } else {
-            $app->whoops->pushHandler(function () use ($app) {
+            $app->appendWhoopsHandler(function () use ($app) {
+                // This code will not be executed in tests
+                // @codeCoverageIgnoreStart
+                /** @var Response $response */
                 $response = $app->response;
                 $response->setContent('<h1>Something went wrong</h1>');
                 $response->setStatusCode(500);
                 $response->send();
                 return Handler::DONE;
+                // @codeCoverageIgnoreEnd
             });
         }
-        $app->whoops->pushHandler($previousHandler);
 
         return true;
     }

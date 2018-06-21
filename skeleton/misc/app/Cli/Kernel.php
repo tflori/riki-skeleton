@@ -60,8 +60,7 @@ class Kernel extends \Riki\Kernel
 
     public function initWhoops(Application $app): bool
     {
-        $app->whoops->pushHandler(new PlainTextHandler());
-
+        $app->appendWhoopsHandler(new PlainTextHandler());
         return true;
     }
 

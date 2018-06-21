@@ -3,6 +3,9 @@
   "description": "",
   "type": "project",
   "license": "proprietary",
+  "config": {
+    "bin-dir": "bin"
+  },
   "require": {
     "php": "^7.1",
     "ext-mbstring": "*",
