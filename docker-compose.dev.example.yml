@@ -1,0 +1,46 @@
+version: "2.0"
+
+services:
+  composer:
+    image: iras/php7-composer:1
+    user: "$UID"
+    working_dir: "/riki"
+    entrypoint: /usr/bin/composer
+    command: info
+    volumes:
+      - "./skeleton/misc:/riki"
+      - "./vendor:/riki/vendor"
+      - "./composer.json:/riki/composer.json"
+      - "${HOME}/.composer/cache:/composer/cache"
+
+  php:
+    build:
+      context: "."
+      dockerfile: "docker/php/Dockerfile"
+    working_dir: "/riki"
+    volumes:
+      - "./skeleton/misc:/riki"
+      - "./vendor:/riki/vendor"
+      - "./composer.json:/riki/composer.json"
+      - "./skeleton/misc/storage/logs:/var/log/php"
+      - "./docker.dev/php/xdebug.ini:/etc/php7/conf.d/xdebug.ini"
+      - "./docker.dev/php/debug.sh:/usr/bin/debug"
+    environment:
+      - "UID=$UID"
+      - "GID=$GID"
+      - "APP_ENV=development"
+
+  nginx:
+    image: iras/nginx:1
+    depends_on:
+      - "php"
+    volumes:
+      - "./skeleton/misc/public:/riki/public"
+      - "./skeleton/misc/storage/logs:/var/log/httpd"
+      - "./docker.dev/nginx/server.conf:/etc/nginx/conf.d/server/riki.conf"
+    ports:
+      - "8080:8080"
+    environment:
+      - "DOCUMENT_ROOT=/riki/public"
+      - "UID=$UID"
+      - "GID=$GID"

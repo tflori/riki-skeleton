@@ -37,19 +37,23 @@ class Application extends \Riki\Application
      */
     public function initWhoops()
     {
-        $whoops = new Whoops\Run();
+        $whoops = $this->whoops = new Whoops\Run();
         $whoops->register();
-        $this->whoops = $whoops;
 
+        // default error logging
         $handler = new PlainTextHandler();
         $handler->setLogger($this->logger);
         $handler->loggerOnly(true);
-        $this->appendWhoopsHandler($handler);
+        $whoops->pushHandler($handler);
 
         return true;
     }
 
     /**
+     * Prepends $handler to the list of handlers from whoops.
+     *
+     * Because whoops executes the handlers in reverse order they will run as last handler - so they are appended.
+     *
      * @param callable|HandlerInterface $handler
      */
     public function appendWhoopsHandler($handler)

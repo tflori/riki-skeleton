@@ -1,9 +1,7 @@
 /vendor
-/composer.lock
+/docker-compose.yml
 
+### remove all this
 # ignore files for test environment
+composer.lock
 /skeleton/misc/composer.json
-/skeleton/misc/composer.lock
-/skeleton/misc/docker-compose.yml
-/skeleton/misc/docker/
-/skeleton/misc/vendor

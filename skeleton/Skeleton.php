@@ -119,10 +119,12 @@ class Skeleton
         $this->remove($target . '/skeleton');
         $this->remove($target . '/composer.lock');
         $this->remove($target . '/vendor');
-        $this->remove($target . '/.gitignore');
+        $this->remove($target . '/docker-compose.dev.example.yml');
+        $this->remove($target . '/docker.dev');
         if (file_exists($target . '/.git')) {
             $this->remove($target . '/.git');
         }
+        $this->cleanupGitignore($target . '/.gitignore');
     }
 
     /**
@@ -450,6 +452,12 @@ class Skeleton
             }
         }
         return unlink($path);
+    }
+
+    protected function cleanupGitignore(string $path)
+    {
+        $file = file($path);
+        file_put_contents($path, implode('', array_slice($file, 0, array_search("### remove all this\n", $file))));
     }
 }
 

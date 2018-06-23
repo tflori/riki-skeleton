@@ -3,18 +3,30 @@
   "description": "Skeleton application using riki framework",
   "type": "project",
   "license": "MIT",
-  "bin": ["skeleton/riki-skeleton"],
+  "bin": ["skeleton/riki-skeleton", "bin/cli"],
   "require": {
     "php": "^7.1",
-    "ext-mbstring": "*",
-    "ulrichsg/getopt-php": "^3.2"
+    "ext-mbstring": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "app"
+    }
   },
   "require-dev": {
     "filp/whoops": "^2.2",
+    "phpunit/phpunit": "^7.2",
+    "mockery/mockery": "^1.1",
     "monolog/monolog": "^1.9",
-    "tflori/riki-framework": "dev-master",
+    "tflori/riki-framework": "1.0.0-alpha.1",
     "tflori/dependency-injector": "^2.0",
-    "tflori/http": "^1.8"
+    "tflori/http": "^1.8",
+    "ulrichsg/getopt-php": "^3.2"
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Test\\": "tests"
+    }
   },
   "scripts": {
     "post-create-project-cmd": [
