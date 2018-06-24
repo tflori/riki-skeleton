@@ -5,3 +5,4 @@
 # ignore files for test environment
 composer.lock
 /skeleton/misc/composer.json
+/skeleton/misc/vendor
