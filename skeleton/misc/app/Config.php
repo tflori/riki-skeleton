@@ -12,6 +12,6 @@ class Config extends \Riki\Config
     public function __construct(Environment $environment)
     {
         parent::__construct($environment);
-        $this->logLevel = $this->env('LOG_LEVEL', $this->logLevel);
+        $this->logLevel = Logger::toMonologLevel($this->env('LOG_LEVEL', $this->logLevel));
     }
 }

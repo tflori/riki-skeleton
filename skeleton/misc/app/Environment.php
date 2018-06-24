@@ -2,30 +2,32 @@
 
 namespace App;
 
+/**
+ * Class Environment
+ *
+ * @package App
+ * @codeCoverageIgnore trivial code
+ */
 class Environment extends \Riki\Environment
 {
     public function storagePath(string $path = null): string
     {
-        $storagePath = $this->getBasePath() . '/storage';
-        if ($path) {
-            $storagePath .= '/' . ltrim($path, '/');
-        }
-        return $storagePath;
+        return $this->getBasePath() . '/storage' . ($path ? DIRECTORY_SEPARATOR . $path : '');
+    }
+
+    public function cachePath(string $path = null): string
+    {
+        return $this->storagePath('cache' . ($path ? DIRECTORY_SEPARATOR . $path : ''));
     }
 
     public function getConfigCachePath(): string
     {
-        $path = $this->storagePath('cache/config.spo');
-        return $path; // serialized php object
+        return $this->cachePath('config.spo');
     }
 
     public function logPath(string $path = null): string
     {
-        $logPath = $this->storagePath('logs');
-        if ($path) {
-            $logPath .= '/' . ltrim($path, '/');
-        }
-        return $logPath;
+        return $this->storagePath('logs' . ($path ? DIRECTORY_SEPARATOR . $path : ''));
     }
 
     public function canShowErrors()

@@ -6,8 +6,12 @@
   "bin": ["skeleton/riki-skeleton", "bin/cli"],
   "require": {
     "php": "^7.1",
-    "ext-mbstring": "*",
-    "ulrichsg/getopt-php": "^3.2"
+    "ext-mbstring": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "app"
+    }
   },
   "require-dev": {
     "filp/whoops": "^2.2",
@@ -20,9 +24,12 @@
     "ulrichsg/getopt-php": "^3.2",
     "squizlabs/php_codesniffer": "^3.3"
   },
+  "autoload-dev": {
+    "psr-4": {
+      "Test\\": "tests"
+    }
+  },
   "scripts": {
-    "post-create-project-cmd": [
-      "skeleton/post-create"
-    ]
+    "code-style": "phpcs --standard=PSR2 app && phpcs --standard=PSR2 --ignore=example tests"
   }
 }

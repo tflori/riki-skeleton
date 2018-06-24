@@ -2,7 +2,6 @@
 
 namespace App\Cli\Command\Config;
 
-
 use App\Cli\AbstractCommand;
 use GetOpt\GetOpt;
 
