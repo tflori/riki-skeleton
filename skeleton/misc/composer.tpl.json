@@ -12,9 +12,7 @@
     "filp/whoops": "^2.2",
     "monolog/monolog": "^1.9",
     "tflori/riki-framework": "1.0.0-alpha.1",
-    "tflori/dependency-injector": "^2.0",
-    "tflori/http": "^1.8",
-    "ulrichsg/getopt-php": "^3.2"
+    "tflori/dependency-injector": "^2.0"
   },
   "autoload": {
     "psr-4": {
