@@ -15,6 +15,9 @@ class Kernel extends \Riki\Kernel
     /** @var GetOpt */
     protected $getOpt;
 
+    /** @var Console */
+    protected $console;
+
     /** @var string[] */
     protected $commands = [
         Command\Config\Cache::class,
@@ -24,7 +27,6 @@ class Kernel extends \Riki\Kernel
     {
         $this->addBootstrappers(
             [$this, 'initWhoops'],
-            [$this, 'createGetOpt'],
             [$this, 'loadCommands']
         );
     }
@@ -55,6 +57,14 @@ class Kernel extends \Riki\Kernel
             return 0;
         }
 
+        if ($verbose = $getOpt->getOption('verbose')) {
+            while ($verbose--) {
+                $this->console->increaseVerbosity();
+            }
+        } elseif ($getOpt->getOption('quiet')) {
+            $this->console->setVerbosity(Console::WEIGHT_HIGH);
+        }
+
         return call_user_func($command->getHandler(), $getOpt);
     }
 
@@ -64,19 +74,17 @@ class Kernel extends \Riki\Kernel
         return true;
     }
 
-    public function createGetOpt(Application $app): bool
-    {
-        $this->getOpt = new GetOpt([
-            Option::create('h', 'help')->setDescription('Show this help message')
-        ]);
-
-        return true;
-    }
-
     public function loadCommands(Application $app): bool
     {
+        $this->console = $app->get('console');
+        $this->getOpt = new GetOpt([
+            Option::create('h', 'help')->setDescription('Show this help message'),
+            Option::create('v', 'verbose')->setDescription('Be verbose (can be stacked: -vv very verbsoe -vvv debug)'),
+            Option::create('q', 'quiet')->setDescription('Disable questions and show only warnings'),
+        ]);
+
         foreach ($this->commands as $class) {
-            $this->getOpt->addCommand(new $class);
+            $this->getOpt->addCommand(new $class($app, $this->console));
         }
 
         return true;
