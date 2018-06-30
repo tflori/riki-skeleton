@@ -10,15 +10,17 @@
          processIsolation="false"
          stopOnFailure="false"
          printerClass="\Test\Printer">
-    <testsuite name="units">
-        <directory>./tests/Unit/</directory>
-    </testsuite>
-    <testsuite name="http">
-        <directory>./tests/Http/</directory>
-    </testsuite>
-    <testsuite name="cli">
-        <directory>./tests/Cli/</directory>
-    </testsuite>
+    <testsuites>
+        <testsuite name="units">
+            <directory>./tests/Unit/</directory>
+        </testsuite>
+        <testsuite name="http">
+            <directory>./tests/Http/</directory>
+        </testsuite>
+        <testsuite name="cli">
+            <directory>./tests/Cli/</directory>
+        </testsuite>
+    </testsuites>
     <filter>
         <whitelist processUncoveredFilesFromWhitelist="true">
             <directory suffix=".php">./app/</directory>
