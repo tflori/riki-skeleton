@@ -11,7 +11,7 @@ services:
       - "./skeleton/misc:/riki"
       - "./vendor:/riki/vendor"
       - "./composer.json:/riki/composer.json"
-      - "${HOME}/.composer/cache:/composer/cache"
+      - "${HOME}/.cache/composer:/composer/cache"
 
   php:
     build:
