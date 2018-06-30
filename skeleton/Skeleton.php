@@ -405,6 +405,7 @@ class Skeleton
     {
         if ($this->pretend) {
             $this->info('remove ' . $path);
+            return;
         }
 
         if (!$this->removeRecursive($path)) {
@@ -446,13 +447,9 @@ class Skeleton
                 continue;
             }
             $filePath = $path . '/' . $file;
-            if (is_dir($filePath)) {
-                $this->removeRecursive($filePath);
-            } else {
-                unlink($filePath);
-            }
+            $this->removeRecursive($filePath);
         }
-        return unlink($path);
+        return rmdir($path);
     }
 
     protected function cleanupGitignore(string $path)
