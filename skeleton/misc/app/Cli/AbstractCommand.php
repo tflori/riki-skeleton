@@ -10,9 +10,6 @@ use Hugga\Console;
 abstract class AbstractCommand extends Command
 {
     /** @var string */
-    protected $name = 'unnamed';
-
-    /** @var string */
     protected $description = '';
 
     /** @var Application */

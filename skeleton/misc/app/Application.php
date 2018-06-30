@@ -3,11 +3,11 @@
 namespace App;
 
 use Http\Response;
+use Hugga\Console;
 use Monolog\Logger;
 use Whoops;
 use Whoops\Handler\HandlerInterface;
 use Whoops\Handler\PlainTextHandler;
-use Whoops\Handler\PrettyPageHandler;
 
 /**
  * Class Application
@@ -18,6 +18,7 @@ use Whoops\Handler\PrettyPageHandler;
  * @property-read Config $config
  * @property-read Logger $logger
  * @property-read Response $response
+ * @property-read Console $console
  */
 class Application extends \Riki\Application
 {
