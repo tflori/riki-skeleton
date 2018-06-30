@@ -14,7 +14,7 @@
     "phpunit/phpunit": "^7.2",
     "mockery/mockery": "^1.1",
     "monolog/monolog": "^1.9",
-    "tflori/riki-framework": "dev-master",
+    "tflori/riki-framework": "1.0.0-alpha.1",
     "tflori/dependency-injector": "^2.0",
     "tflori/http": "^1.8",
     "tflori/hugga": "dev-master",

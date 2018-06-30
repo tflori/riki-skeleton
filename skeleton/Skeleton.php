@@ -182,6 +182,7 @@ class Skeleton
         }
 
         $this->rename($target . '/bin/cli', $target . '/bin/' . $binaryFile);
+        $this->chmod($target . '/bin/' . $binaryFile, umask() ^ 0777 | 0111);
     }
 
     /**
@@ -399,12 +400,29 @@ class Skeleton
 
     /**
      * @param string $path
+     * @param int    $mode
+     * @throws \Exception
+     */
+    protected function chmod(string $path, int $mode)
+    {
+        if ($this->pretend) {
+            $this->info(sprintf('change mode for %s to %s', $path, decoct($mode)));
+            return;
+        }
+        if (!chmod($path, $mode)) {
+            throw new \Exception(sprintf('Could not change file mode for %s to %s', $path, decoct($mode)));
+        }
+    }
+
+    /**
+     * @param string $path
      * @throws \Exception
      */
     protected function remove(string $path)
     {
         if ($this->pretend) {
             $this->info('remove ' . $path);
+            return;
         }
 
         if (!$this->removeRecursive($path)) {
@@ -446,18 +464,21 @@ class Skeleton
                 continue;
             }
             $filePath = $path . '/' . $file;
-            if (is_dir($filePath)) {
-                $this->removeRecursive($filePath);
-            } else {
-                unlink($filePath);
-            }
+            $this->removeRecursive($filePath);
         }
-        return unlink($path);
+        return rmdir($path);
     }
 
     protected function cleanupGitignore(string $path)
     {
         $file = file($path);
+        if ($this->pretend) {
+            $this->info(sprintf(
+                'removing all lines from gitignore beginning in line %d',
+                array_search("### remove all this\n", $file)
+            ));
+            return;
+        }
         file_put_contents($path, implode('', array_slice($file, 0, array_search("### remove all this\n", $file))));
     }
 }

@@ -3,7 +3,6 @@
 namespace Test\Unit\Http;
 
 use App\Http\Kernel;
-use Http\Response;
 use Mockery as m;
 use Test\TestCase;
 use Whoops\Handler\PrettyPageHandler;
@@ -39,14 +38,5 @@ class KernelTest extends TestCase
 
         $kernel = new Kernel();
         $kernel->initWhoops($this->app);
-    }
-
-    /** @test */
-    public function handleReturnsAResponse()
-    {
-        $kernel = new Kernel();
-        $result = $kernel->handle();
-
-        self::assertInstanceOf(Response::class, $result);
     }
 }

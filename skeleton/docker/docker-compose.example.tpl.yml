@@ -9,7 +9,7 @@ services:
     command: info
     volumes:
       - "./:/<?= $basePath ?>"
-      - "${HOME}/.composer/cache:/composer/cache"
+      - "${HOME}/.cache/composer:/composer/cache"
 
   php:
     build:

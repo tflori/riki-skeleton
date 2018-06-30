@@ -6,4 +6,8 @@ $app = new \App\Application(realPath(__DIR__ . '/..'));
 $kernel = new \App\Http\Kernel();
 $response = $app->run($kernel);
 
-$response->send();
+// @todo send the response
+foreach ($response['headers'] as $header) {
+    header($header);
+}
+echo $response['content'];

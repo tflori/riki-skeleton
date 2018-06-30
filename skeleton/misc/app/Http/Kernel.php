@@ -3,11 +3,6 @@
 namespace App\Http;
 
 use App\Application;
-use DependencyInjector\DI;
-use Http\HttpRequest;
-use Http\HttpResponse;
-use Http\Request;
-use Http\Response;
 use Whoops\Handler\Handler;
 use Whoops\Handler\PrettyPageHandler;
 
@@ -20,15 +15,21 @@ class Kernel extends \Riki\Kernel
         );
     }
 
-    public function handle(Request $request = null): Response
+    public function handle($request = null): array // @todo this should return a response object
     {
         if (!$request) {
-            // @todo I don't like it - the HttpRequest class should have a createFromSuperGlobals
-            $request = new HttpRequest($_GET, $_POST, $_COOKIE, $_FILES, $_SERVER, file_get_contents('php://input'));
+            // @todo create a request object
+            // During tests we don't create a request object from super globals
+            // @codeCoverageIgnoreStart
+            $request = ['uri' => $_SERVER['REQUEST_URI'], 'get' => $_GET, 'post' => $_POST, 'files' => $_FILES];
+            // @codeCoverageIgnoreEnd
         }
 
         // @todo route the request to a proper controller that returns a response
-        return DI::response();
+        return [
+            'headers' => ['HTTP/1.1 404 Not Found'],
+            'content' => '<h1>File Not Found</h1>',
+        ];
     }
 
     public function initWhoops(Application $app): bool
@@ -38,15 +39,16 @@ class Kernel extends \Riki\Kernel
             // $handler->setEditor(...)
             $app->appendWhoopsHandler($handler);
         } else {
-            $app->appendWhoopsHandler(function () use ($app) {
+            $app->appendWhoopsHandler(function () {
                 // This code will not be executed in tests
                 // @codeCoverageIgnoreStart
-                /** @var Response $response */
-                $response = $app->response;
-                $response->setContent('<h1>Something went wrong</h1>');
-                $response->setStatusCode(500);
-                $response->send();
-                return Handler::DONE;
+                // @todo show the default error page
+                if (!headers_sent()) {
+                    header('HTTP/1.1 500 Internal Server Error');
+                    header('Content-Type: text/html; charset=utf-8');
+                }
+                echo '<h1>Something went wrong</h1>';
+                return Handler::QUIT;
                 // @codeCoverageIgnoreEnd
             });
         }
