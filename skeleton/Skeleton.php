@@ -182,6 +182,7 @@ class Skeleton
         }
 
         $this->rename($target . '/bin/cli', $target . '/bin/' . $binaryFile);
+        $this->chmod($target . '/bin/' . $binaryFile, umask() ^ 0777 | 0111);
     }
 
     /**
@@ -394,6 +395,22 @@ class Skeleton
 
         if (!copy($source, $dest)) {
             throw new \Exception('Could not copy file ' . $source . ' to ' . $dest);
+        }
+    }
+
+    /**
+     * @param string $path
+     * @param int    $mode
+     * @throws \Exception
+     */
+    protected function chmod(string $path, int $mode)
+    {
+        if ($this->pretend) {
+            $this->info(sprintf('change mode for %s to %s', $path, decoct($mode)));
+            return;
+        }
+        if (!chmod($path, $mode)) {
+            throw new \Exception(sprintf('Could not change file mode for %s to %s', $path, decoct($mode)));
         }
     }
 
