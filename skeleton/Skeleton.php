@@ -455,6 +455,13 @@ class Skeleton
     protected function cleanupGitignore(string $path)
     {
         $file = file($path);
+        if ($this->pretend) {
+            $this->info(sprintf(
+                'removing all lines from gitignore beginning in line %d',
+                array_search("### remove all this\n", $file)
+            ));
+            return;
+        }
         file_put_contents($path, implode('', array_slice($file, 0, array_search("### remove all this\n", $file))));
     }
 }
