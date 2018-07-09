@@ -14,9 +14,6 @@ use Whoops\Handler\PlainTextHandler;
 
 class Kernel extends \Riki\Kernel
 {
-    /** @var GetOpt */
-    protected $getOpt;
-
     /** @var Application */
     protected $app;
 
@@ -31,6 +28,7 @@ class Kernel extends \Riki\Kernel
 
         $this->addBootstrappers(
             [$this, 'initWhoops'],
+            [$this, 'registerDependencies'],
             [$this, 'loadCommands']
         );
     }
@@ -42,7 +40,7 @@ class Kernel extends \Riki\Kernel
     public function handle($arguments = null): int
     {
         /** @var GetOpt $getOpt */
-        $getOpt = $this->getOpt;
+        $getOpt = $this->app->get(GetOpt::class);
         /** @var Console $console */
         $console = $this->app->console;
 
@@ -85,16 +83,31 @@ class Kernel extends \Riki\Kernel
         return true;
     }
 
+    public function registerDependencies(Application $app): bool
+    {
+        if (!$app->has(GetOpt::class)) {
+            $app->share(GetOpt::class, GetOpt::class);
+        }
+        return true;
+    }
+
     public function loadCommands(Application $app): bool
     {
-        $this->getOpt = new GetOpt([
-            Option::create('h', 'help')->setDescription('Show this help message'),
-            Option::create('v', 'verbose')->setDescription('Be verbose (can be stacked: -vv very verbsoe -vvv debug)'),
-            Option::create('q', 'quiet')->setDescription('Disable questions and show only warnings'),
-        ]);
+        /** @var GetOpt $getOpt */
+        $getOpt = $app->get(GetOpt::class);
 
-        foreach ($this->commands as $class) {
-            $this->getOpt->addCommand(new $class($app, $app->console));
+        if (!$getOpt->hasOptions()) {
+            $getOpt->addOptions([
+                Option::create('h', 'help')->setDescription('Show this help message'),
+                Option::create('v', 'verbose')->setDescription('Be verbose (can be stacked: -vv very verbsoe -vvv debug)'),
+                Option::create('q', 'quiet')->setDescription('Disable questions and show only warnings'),
+            ]);
+        }
+
+        if (!$getOpt->hasCommands()) {
+            foreach ($this->commands as $class) {
+                $getOpt->addCommand(new $class($app, $app->console));
+            }
         }
 
         return true;

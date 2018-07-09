@@ -11,7 +11,7 @@ class KernelTest extends TestCase
     /** @test */
     public function initWhoopsReturnsTrue()
     {
-        $kernel = new Kernel();
+        $kernel = new Kernel($this->app);
         $result = $kernel->initWhoops($this->app);
 
         self::assertTrue($result);
@@ -22,7 +22,7 @@ class KernelTest extends TestCase
         $this->app->shouldReceive('appendWhoopsHandler')
             ->with(m::type(PlainTextHandler::class))->once();
 
-        $kernel = new Kernel();
+        $kernel = new Kernel($this->app);
         $kernel->initWhoops($this->app);
     }
 }
