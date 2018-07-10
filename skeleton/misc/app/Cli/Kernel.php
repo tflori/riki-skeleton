@@ -98,9 +98,12 @@ class Kernel extends \Riki\Kernel
 
         if (!$getOpt->hasOptions()) {
             $getOpt->addOptions([
-                Option::create('h', 'help')->setDescription('Show this help message'),
-                Option::create('v', 'verbose')->setDescription('Be verbose (can be stacked: -vv very verbsoe -vvv debug)'),
-                Option::create('q', 'quiet')->setDescription('Disable questions and show only warnings'),
+                Option::create('h', 'help')
+                    ->setDescription('Show this help message'),
+                Option::create('v', 'verbose')
+                    ->setDescription('Be verbose (can be stacked: -vv very verbsoe -vvv debug)'),
+                Option::create('q', 'quiet')
+                    ->setDescription('Disable questions and show only warnings'),
             ]);
         }
 
