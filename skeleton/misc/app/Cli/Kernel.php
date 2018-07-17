@@ -6,16 +6,14 @@ use App\Application;
 use App\Cli\Command;
 use Whoops\Handler\PlainTextHandler;
 
-class Kernel extends \Riki\Kernel
+class Kernel extends \App\Kernel
 {
     public function __construct()
     {
-        $this->addBootstrappers(
-            [$this, 'initWhoops']
-        );
+        // $this->addBootstrappers();
     }
 
-    public function handle($arguments = null): int
+    public function handle(\Riki\Application $app, $arguments = null): int
     {
         if (!$arguments) {
             // @todo change this to your needs
@@ -30,9 +28,8 @@ class Kernel extends \Riki\Kernel
         return 0;
     }
 
-    public function initWhoops(Application $app): bool
+    public function getErrorHandlers(Application $app): array
     {
-        $app->appendWhoopsHandler(new PlainTextHandler());
-        return true;
+        return [new PlainTextHandler()];
     }
 }

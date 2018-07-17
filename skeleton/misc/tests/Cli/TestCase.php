@@ -9,16 +9,8 @@ class TestCase extends \Test\TestCase
     protected function start(array $arguments)
     {
         $kernel = new Kernel();
-        $this->bootstrap(...$kernel->getBootstrappers());
         ob_start();
-        $returnVar = $kernel->handle($arguments);
+        $returnVar = $this->app->run($kernel, $arguments);
         return ['returnVar' => $returnVar, 'output' => ob_get_clean()];
-    }
-
-    protected function bootstrap(callable ...$bootstrappers)
-    {
-        foreach ($bootstrappers as $bootstrapper) {
-            call_user_func($bootstrapper, $this->app);
-        }
     }
 }

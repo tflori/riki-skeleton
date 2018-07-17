@@ -9,20 +9,12 @@ use Whoops\Handler\PlainTextHandler;
 class KernelTest extends TestCase
 {
     /** @test */
-    public function initWhoopsReturnsTrue()
+    public function definesAPlainTextHandler()
     {
         $kernel = new Kernel();
-        $result = $kernel->initWhoops($this->app);
 
-        self::assertTrue($result);
-    }
+        $result = $kernel->getErrorHandlers($this->app);
 
-    public function appendsAPlainTextHandler()
-    {
-        $this->app->shouldReceive('appendWhoopsHandler')
-            ->with(m::type(PlainTextHandler::class))->once();
-
-        $kernel = new Kernel();
-        $kernel->initWhoops($this->app);
+        self::assertInstanceOf(PlainTextHandler::class, $result[0]);
     }
 }

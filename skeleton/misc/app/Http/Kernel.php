@@ -6,16 +6,15 @@ use App\Application;
 use Whoops\Handler\Handler;
 use Whoops\Handler\PrettyPageHandler;
 
-class Kernel extends \Riki\Kernel
+class Kernel extends \App\Kernel
 {
     public function __construct()
     {
-        $this->addBootstrappers(
-            [$this, 'initWhoops']
-        );
+        // $this->addBootstrappers();
     }
 
-    public function handle($request = null): array // @todo this should return a response object
+    // @todo this should return a response object
+    public function handle(\Riki\Application $app, $request = null): array
     {
         if (!$request) {
             // @todo create a request object
@@ -32,14 +31,14 @@ class Kernel extends \Riki\Kernel
         ];
     }
 
-    public function initWhoops(Application $app): bool
+    public function getErrorHandlers(Application $app): array
     {
         if ($app->environment->canShowErrors()) {
             $handler = new PrettyPageHandler();
             // $handler->setEditor(...)
-            $app->appendWhoopsHandler($handler);
+            return [$handler];
         } else {
-            $app->appendWhoopsHandler(function () {
+            return [function () {
                 // This code will not be executed in tests
                 // @codeCoverageIgnoreStart
                 // @todo show the default error page
@@ -50,9 +49,7 @@ class Kernel extends \Riki\Kernel
                 echo '<h1>Something went wrong</h1>';
                 return Handler::QUIT;
                 // @codeCoverageIgnoreEnd
-            });
+            }];
         }
-
-        return true;
     }
 }

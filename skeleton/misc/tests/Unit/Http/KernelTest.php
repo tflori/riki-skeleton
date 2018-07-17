@@ -3,40 +3,30 @@
 namespace Test\Unit\Http;
 
 use App\Http\Kernel;
-use Mockery as m;
 use Test\TestCase;
 use Whoops\Handler\PrettyPageHandler;
 
 class KernelTest extends TestCase
 {
     /** @test */
-    public function initWhoopsReturnsTrue()
+    public function definesACustomErrorHandler()
     {
         $kernel = new Kernel();
-        $result = $kernel->initWhoops($this->app);
-
-        self::assertTrue($result);
-    }
-
-    /** @test */
-    public function initWhoopsAddsClosureHandler()
-    {
         $this->app->environment->shouldReceive('canShowErrors')->andReturn(false);
-        $this->app->shouldReceive('appendWhoopsHandler')
-            ->with(m::type(\Closure::class))->once();
 
-        $kernel = new Kernel();
-        $kernel->initWhoops($this->app);
+        $result = $kernel->getErrorHandlers($this->app);
+
+        self::assertInstanceOf(\Closure::class, $result[0]);
     }
 
     /** @test */
-    public function initWhoopsAddsPrettyPageHandler()
+    public function definesAPrettyPageHandler()
     {
-        $this->app->environment->shouldReceive('canShowErrors')->andReturn(true);
-        $this->app->shouldReceive('appendWhoopsHandler')
-            ->with(m::type(PrettyPageHandler::class))->once();
-
         $kernel = new Kernel();
-        $kernel->initWhoops($this->app);
+        $this->app->environment->shouldReceive('canShowErrors')->andReturn(true);
+
+        $result = $kernel->getErrorHandlers($this->app);
+
+        self::assertInstanceOf(PrettyPageHandler::class, $result[0]);
     }
 }
