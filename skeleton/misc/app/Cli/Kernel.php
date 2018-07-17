@@ -77,7 +77,9 @@ class Kernel extends \App\Kernel
 
     public function registerDependencies(Application $app): bool
     {
-        $app->add(GetOpt::class, GetOpt::class);
+        if (!$app->has(GetOpt::class)) {
+            $app->add(GetOpt::class, GetOpt::class);
+        }
         return true;
     }
 
@@ -90,7 +92,7 @@ class Kernel extends \App\Kernel
             Option::create('h', 'help')
                 ->setDescription('Show this help message'),
             Option::create('v', 'verbose')
-                ->setDescription('Be verbose (can be stacked: -vv very verbsoe -vvv debug)'),
+                ->setDescription('Be verbose (can be stacked: -vv very verbose -vvv debug)'),
             Option::create('q', 'quiet')
                 ->setDescription('Disable questions and show only warnings'),
         ]);
