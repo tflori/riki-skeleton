@@ -10,7 +10,6 @@ abstract class TestCase extends \Test\TestCase
     {
         $request = ['uri' => $uri, 'get' => $query, 'post' => [], 'files' => []];
         $kernel = new Kernel();
-        $this->bootstrap(...$kernel->getBootstrappers());
-        return $kernel->handle($request);
+        return $this->app->run($kernel, $request);
     }
 }

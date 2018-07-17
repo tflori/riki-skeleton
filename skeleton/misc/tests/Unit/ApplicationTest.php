@@ -2,28 +2,51 @@
 
 namespace Test\Unit;
 
+use App\Kernel;
 use Test\TestCase;
+use Whoops\Handler\PlainTextHandler;
+use Mockery as m;
 
 class ApplicationTest extends TestCase
 {
     /** @test */
-    public function prependsTheHandler()
+    public function registersErrorHandler()
     {
-        // reset mocking of appendWhoopsHandler
-        $this->app->shouldReceive('appendWhoopsHandler')->passthru()->byDefault();
-        $whoops = $this->mocks['whoops'];
-        $whoops->shouldReceive('getHandlers')->with()
-            ->once()->andReturn(['is_int', 'is_bool']);
-        $whoops->shouldReceive('clearHandlers')->with()
-            ->once()->andReturnSelf();
+         $this->mocks['whoops']->shouldReceive('register')->with()
+           ->once()->andReturnSelf();
 
-        $whoops->shouldReceive('pushHandler')->with('is_string')
-            ->ordered('push')->once();
-        $whoops->shouldReceive('pushHandler')->with('is_int')
-            ->ordered('push')->once();
-        $whoops->shouldReceive('pushHandler')->with('is_bool')
-            ->ordered('push')->once();
+         $this->app->initWhoops();
+    }
 
-        $this->app->appendWhoopsHandler('is_string');
+    /** @test */
+    public function definesAnErrorHandlerForLogging()
+    {
+        $handler = new PlainTextHandler($this->app->logger);
+        $handler->loggerOnly(true);
+
+        $this->app->initWhoops();
+
+        self::assertEquals($handler, $this->app->get('whoops')->popHandler());
+    }
+
+    /** @test */
+    public function prependsAndRemovesHandlerFromKernel()
+    {
+        $handlersBefore = $this->app->whoops->getHandlers();
+        $kernelHandlers = [new PlainTextHandler()];
+        $kernel = m::mock(Kernel::class);
+        $kernel->shouldReceive('getBootstrappers')->andReturn([]);
+        $kernel->shouldReceive('getErrorHandlers')->with($this->app)
+            ->once()->andReturn($kernelHandlers);
+
+
+        $kernel->shouldReceive('handle')->with($this->app)
+            ->once()->andReturnUsing(function () use ($handlersBefore, $kernelHandlers) {
+                self::assertSame(array_merge($kernelHandlers, $handlersBefore), $this->app->whoops->getHandlers());
+            });
+
+        $this->app->run($kernel);
+
+        self::assertSame($handlersBefore, $this->app->whoops->getHandlers());
     }
 }

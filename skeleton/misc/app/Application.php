@@ -6,7 +6,6 @@ use Http\Response;
 use Hugga\Console;
 use Monolog\Logger;
 use Whoops;
-use Whoops\Handler\HandlerInterface;
 use Whoops\Handler\PlainTextHandler;
 
 /**
@@ -17,7 +16,6 @@ use Whoops\Handler\PlainTextHandler;
  * @property-read Environment $environment
  * @property-read Config $config
  * @property-read Logger $logger
- * @property-read Response $response
  * @property-read Console $console
  */
 class Application extends \Riki\Application
@@ -25,45 +23,74 @@ class Application extends \Riki\Application
     /** @var Whoops\Run */
     protected $whoops;
 
+    /** @var array */
+    protected $errorHandlers;
+
     public function __construct(string $basePath)
     {
         parent::__construct($basePath);
-        $this->addBootstrappers([$this, 'initWhoops']);
+
+        // bootstrap the application
+        $this->initWhoops();
+    }
+
+    protected function initDependencies()
+    {
+        parent::initDependencies();
+
+        // Register a namespace for factories
         $this->registerNamespace('App\Factory');
+
+        // Register Whoops\Run under whoops
+        $this->share('whoops', Whoops\Run::class);
     }
 
     /**
      * @return bool
-     * @codeCoverageIgnore We can not register whoops in tests
      */
     public function initWhoops()
     {
-        $whoops = $this->whoops = new Whoops\Run();
+        /** @var Whoops\Run $whoops */
+        $whoops = $this->get('whoops');
         $whoops->register();
-
-        // default error logging
-        $handler = new PlainTextHandler();
-        $handler->setLogger($this->logger);
-        $handler->loggerOnly(true);
-        $whoops->pushHandler($handler);
-
+        $this->setErrorHandlers(...$this->getErrorHandlers());
         return true;
     }
 
-    /**
-     * Prepends $handler to the list of handlers from whoops.
-     *
-     * Because whoops executes the handlers in reverse order they will run as last handler - so they are appended.
-     *
-     * @param callable|HandlerInterface $handler
-     */
-    public function appendWhoopsHandler($handler)
+    public function run(\Riki\Kernel $kernel, ...$args)
     {
-        $handlers = $this->whoops->getHandlers();
-        array_unshift($handlers, $handler);
-        $this->whoops->clearHandlers();
+        if ($kernel instanceof Kernel) {
+            $this->setErrorHandlers(...$kernel->getErrorHandlers($this), ...$this->getErrorHandlers());
+        }
+
+        $result = parent::run($kernel, ...$args);
+
+        if ($kernel instanceof Kernel) {
+            // @todo this should be shift and unshift of kernels error handlers but there is only push and pop
+            $this->setErrorHandlers(...$this->getErrorHandlers());
+        }
+
+        return $result;
+    }
+
+    protected function getErrorHandlers()
+    {
+        if (!$this->errorHandlers) {
+            $plainTextHandler = new PlainTextHandler($this->logger);
+            $plainTextHandler->loggerOnly(true);
+            $this->errorHandlers = [$plainTextHandler];
+        }
+
+        return $this->errorHandlers;
+    }
+
+    protected function setErrorHandlers(...$handlers)
+    {
+        /** @var Whoops\Run $whoops */
+        $whoops = $this->get('whoops');
+        $whoops->clearHandlers();
         foreach ($handlers as $handler) {
-            $this->whoops->pushHandler($handler);
+            $whoops->pushHandler($handler);
         }
     }
 }

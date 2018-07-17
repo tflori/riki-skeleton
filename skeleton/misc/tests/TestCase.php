@@ -7,7 +7,7 @@ use App\Config;
 use App\Environment;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
 use Mockery as m;
-use Whoops\Run;
+use Whoops;
 
 abstract class TestCase extends MockeryTestCase
 {
@@ -31,10 +31,7 @@ abstract class TestCase extends MockeryTestCase
         $this->basePath = $basePath;
 
         /** @var Application|m\Mock $app */
-        $app = $this->app = m::mock(Application::class . '[appendWhoopsHandler]', [$basePath]);
-        $app->shouldReceive('appendWhoopsHandler')->withAnyArgs()->andReturnNull()->byDefault();
-        $this->mocks['whoops'] = m::mock(new Run());
-        self::setProtectedProperty($app, 'whoops', $this->mocks['whoops']);
+        $app = $this->app = m::mock(Application::class . '[]', [$basePath]);
 
         $this->initDependencies();
     }
@@ -49,6 +46,12 @@ abstract class TestCase extends MockeryTestCase
         $this->mocks['config'] = m::mock(Config::class)->makePartial();
         $this->app->instance('config', $this->mocks['config']);
         $this->app->alias('config', Config::class);
+
+        /** @var Whoops\Run|m\Mock $whoops */
+        $whoops = $this->mocks['whoops'] = m::mock($this->app->get('whoops'));
+        $this->app->instance('whoops', $whoops);
+        $whoops->unregister();
+        $whoops->shouldReceive('register')->andReturnSelf()->byDefault();
     }
 
     /**

@@ -12,37 +12,30 @@ use GetOpt\Option;
 use Hugga\Console;
 use Whoops\Handler\PlainTextHandler;
 
-class Kernel extends \Riki\Kernel
+class Kernel extends \App\Kernel
 {
-    /** @var Application */
-    protected $app;
-
     /** @var string[] */
     protected $commands = [
         Command\Config\Cache::class,
     ];
 
-    public function __construct(Application $app)
+    public function __construct()
     {
-        $this->app = $app;
-
         $this->addBootstrappers(
-            [$this, 'initWhoops'],
-            [$this, 'registerDependencies'],
-            [$this, 'loadCommands']
+            [$this, 'registerDependencies']
         );
     }
 
     /**
+     * @param \Riki\Application      $app
      * @param array|string|Arguments $arguments
      * @return int
      */
-    public function handle($arguments = null): int
+    public function handle(\Riki\Application $app, $arguments = null): int
     {
-        /** @var GetOpt $getOpt */
-        $getOpt = $this->app->get(GetOpt::class);
+        $getOpt = $this->loadCommands($app);
         /** @var Console $console */
-        $console = $this->app->console;
+        $console = $app->console;
 
         // process arguments and catch user errors
         try {
@@ -77,42 +70,35 @@ class Kernel extends \Riki\Kernel
         return call_user_func($command->getHandler(), $getOpt);
     }
 
-    public function initWhoops(Application $app): bool
+    public function getErrorHandlers(Application $app): array
     {
-        $app->appendWhoopsHandler(new PlainTextHandler());
-        return true;
+        return [new PlainTextHandler()];
     }
 
     public function registerDependencies(Application $app): bool
     {
-        if (!$app->has(GetOpt::class)) {
-            $app->share(GetOpt::class, GetOpt::class);
-        }
+        $app->add(GetOpt::class, GetOpt::class);
         return true;
     }
 
-    public function loadCommands(Application $app): bool
+    public function loadCommands(Application $app): GetOpt
     {
         /** @var GetOpt $getOpt */
         $getOpt = $app->get(GetOpt::class);
 
-        if (!$getOpt->hasOptions()) {
-            $getOpt->addOptions([
-                Option::create('h', 'help')
-                    ->setDescription('Show this help message'),
-                Option::create('v', 'verbose')
-                    ->setDescription('Be verbose (can be stacked: -vv very verbsoe -vvv debug)'),
-                Option::create('q', 'quiet')
-                    ->setDescription('Disable questions and show only warnings'),
-            ]);
+        $getOpt->addOptions([
+            Option::create('h', 'help')
+                ->setDescription('Show this help message'),
+            Option::create('v', 'verbose')
+                ->setDescription('Be verbose (can be stacked: -vv very verbsoe -vvv debug)'),
+            Option::create('q', 'quiet')
+                ->setDescription('Disable questions and show only warnings'),
+        ]);
+
+        foreach ($this->commands as $class) {
+            $getOpt->addCommand(new $class($app, $app->console));
         }
 
-        if (!$getOpt->hasCommands()) {
-            foreach ($this->commands as $class) {
-                $getOpt->addCommand(new $class($app, $app->console));
-            }
-        }
-
-        return true;
+        return $getOpt;
     }
 }

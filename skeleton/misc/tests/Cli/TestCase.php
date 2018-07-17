@@ -11,7 +11,7 @@ class TestCase extends \Test\TestCase
 {
     protected function start(array $arguments)
     {
-        $kernel = new Kernel($this->app);
+        $kernel = new Kernel();
         $this->bootstrap(...$kernel->getBootstrappers());
 
         $outFile = '/tmp/test.stdout';
@@ -21,7 +21,7 @@ class TestCase extends \Test\TestCase
         $this->mocks['console']->setStdout($stdout);
         $this->mocks['console']->setStderr($stderr);
 
-        $returnVar = $kernel->handle($arguments);
+        $returnVar = $this->app->run($kernel, $arguments);
 
         fclose($stdout);
         fclose($stderr);
