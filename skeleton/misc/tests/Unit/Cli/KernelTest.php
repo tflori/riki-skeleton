@@ -2,7 +2,7 @@
 
 namespace Test\Unit\Cli;
 
-use App\Cli\Kernel;
+use App\Cli\CliKernel;
 use Test\TestCase;
 use Whoops\Handler\PlainTextHandler;
 
@@ -11,7 +11,7 @@ class KernelTest extends TestCase
     /** @test */
     public function definesAPlainTextHandler()
     {
-        $kernel = new Kernel();
+        $kernel = new CliKernel();
 
         $result = $kernel->getErrorHandlers($this->app);
 

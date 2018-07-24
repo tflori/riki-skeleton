@@ -2,7 +2,7 @@
 
 namespace Test\Unit\Http;
 
-use App\Http\Kernel;
+use App\Http\HttpKernel;
 use Test\TestCase;
 use Whoops\Handler\PrettyPageHandler;
 
@@ -11,7 +11,7 @@ class KernelTest extends TestCase
     /** @test */
     public function definesACustomErrorHandler()
     {
-        $kernel = new Kernel();
+        $kernel = new HttpKernel();
         $this->app->environment->shouldReceive('canShowErrors')->andReturn(false);
 
         $result = $kernel->getErrorHandlers($this->app);
@@ -22,7 +22,7 @@ class KernelTest extends TestCase
     /** @test */
     public function definesAPrettyPageHandler()
     {
-        $kernel = new Kernel();
+        $kernel = new HttpKernel();
         $this->app->environment->shouldReceive('canShowErrors')->andReturn(true);
 
         $result = $kernel->getErrorHandlers($this->app);

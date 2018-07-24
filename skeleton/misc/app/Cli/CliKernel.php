@@ -6,7 +6,7 @@ use App\Application;
 use App\Cli\Command;
 use Whoops\Handler\PlainTextHandler;
 
-class Kernel extends \App\Kernel
+class CliKernel extends \App\Kernel
 {
     public function __construct()
     {
@@ -17,7 +17,7 @@ class Kernel extends \App\Kernel
     {
         if (!$arguments) {
             // @todo change this to your needs
-            // During tests we don't create a arguments from super globals
+            // During tests we don't create arguments from super globals
             // @codeCoverageIgnoreStart
             $arguments = $_SERVER['argv'];
             // @codeCoverageIgnoreEnd
