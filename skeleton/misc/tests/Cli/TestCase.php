@@ -2,7 +2,7 @@
 
 namespace Test\Cli;
 
-use App\Cli\Kernel;
+use App\Cli\CliKernel;
 use GetOpt\GetOpt;
 use Hugga\Console;
 use Mockery as m;
@@ -11,7 +11,7 @@ class TestCase extends \Test\TestCase
 {
     protected function start(array $arguments)
     {
-        $kernel = new Kernel();
+        $kernel = new CliKernel();
         $this->bootstrap(...$kernel->getBootstrappers());
 
         $outFile = '/tmp/test.stdout';

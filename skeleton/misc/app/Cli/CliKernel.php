@@ -12,7 +12,7 @@ use GetOpt\Option;
 use Hugga\Console;
 use Whoops\Handler\PlainTextHandler;
 
-class Kernel extends \App\Kernel
+class CliKernel extends \App\Kernel
 {
     /** @var string[] */
     protected $commands = [

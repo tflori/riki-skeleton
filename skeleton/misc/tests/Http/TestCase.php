@@ -2,14 +2,14 @@
 
 namespace Test\Http;
 
-use App\Http\Kernel;
+use App\Http\HttpKernel;
 
 abstract class TestCase extends \Test\TestCase
 {
     protected function get(string $uri, array $query = [])
     {
         $request = ['uri' => $uri, 'get' => $query, 'post' => [], 'files' => []];
-        $kernel = new Kernel();
+        $kernel = new HttpKernel();
         return $this->app->run($kernel, $request);
     }
 }

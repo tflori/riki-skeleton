@@ -6,7 +6,7 @@ use App\Application;
 use Whoops\Handler\Handler;
 use Whoops\Handler\PrettyPageHandler;
 
-class Kernel extends \App\Kernel
+class HttpKernel extends \App\Kernel
 {
     public function __construct()
     {
