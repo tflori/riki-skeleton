@@ -9,7 +9,7 @@ use Mockery as m;
 
 class TestCase extends \Test\TestCase
 {
-    protected function start(array $arguments)
+    protected function start(...$arguments)
     {
         $kernel = new CliKernel();
         $this->bootstrap(...$kernel->getBootstrappers());

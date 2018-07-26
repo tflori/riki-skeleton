@@ -10,7 +10,7 @@ class NotFoundTest extends TestCase
         $this->mocks['getOpt']->shouldReceive('getHelpText')->with()
             ->once()->andReturn('GetOpts Help Text');
 
-        $result = $this->start(['any:command']);
+        $result = $this->start('any:command');
 
         self::assertSame(0, $result['returnVar']);
         self::assertSame('GetOpts Help Text', $result['output']);
