@@ -6,7 +6,7 @@ use App\Cli\CliKernel;
 
 class TestCase extends \Test\TestCase
 {
-    protected function start(array $arguments)
+    protected function start(...$arguments)
     {
         $kernel = new CliKernel();
         ob_start();
