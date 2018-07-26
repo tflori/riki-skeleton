@@ -15,15 +15,18 @@ use Whoops\Handler\PlainTextHandler;
 class CliKernel extends \App\Kernel
 {
     /** @var string[] */
-    protected $commands = [
+    protected static $commands = [
         Command\Config\Cache::class,
     ];
 
+    /** @var GetOpt */
+    protected $getOpt;
+
     public function __construct()
     {
-        $this->addBootstrappers(
-            [$this, 'registerDependencies']
-        );
+         $this->addBootstrappers(
+             [$this, 'loadCommands']
+         );
     }
 
     /**
@@ -33,8 +36,8 @@ class CliKernel extends \App\Kernel
      */
     public function handle(\Riki\Application $app, $arguments = null): int
     {
-        $getOpt = $this->loadCommands($app);
-        /** @var Console $console */
+        /** @var Application $app */
+        $getOpt = $this->getOpt;
         $console = $app->console;
 
         // process arguments and catch user errors
@@ -75,32 +78,26 @@ class CliKernel extends \App\Kernel
         return [new PlainTextHandler()];
     }
 
-    public function registerDependencies(Application $app): bool
+    public function loadCommands(Application $app): bool
     {
-        if (!$app->has(GetOpt::class)) {
-            $app->add(GetOpt::class, GetOpt::class);
+        if (!$this->getOpt) {
+            /** @var GetOpt $getOpt */
+            $this->getOpt = $getOpt = $app->make(GetOpt::class);
+
+            $getOpt->addOptions([
+                Option::create('h', 'help')
+                    ->setDescription('Show this help message'),
+                Option::create('v', 'verbose')
+                    ->setDescription('Be verbose (can be stacked: -vv very verbose -vvv debug)'),
+                Option::create('q', 'quiet')
+                    ->setDescription('Disable questions and show only warnings'),
+            ]);
+
+            foreach (static::$commands as $class) {
+                $getOpt->addCommand(new $class($app, $app->console));
+            }
         }
+
         return true;
-    }
-
-    public function loadCommands(Application $app): GetOpt
-    {
-        /** @var GetOpt $getOpt */
-        $getOpt = $app->get(GetOpt::class);
-
-        $getOpt->addOptions([
-            Option::create('h', 'help')
-                ->setDescription('Show this help message'),
-            Option::create('v', 'verbose')
-                ->setDescription('Be verbose (can be stacked: -vv very verbose -vvv debug)'),
-            Option::create('q', 'quiet')
-                ->setDescription('Disable questions and show only warnings'),
-        ]);
-
-        foreach ($this->commands as $class) {
-            $getOpt->addCommand(new $class($app, $app->console));
-        }
-
-        return $getOpt;
     }
 }

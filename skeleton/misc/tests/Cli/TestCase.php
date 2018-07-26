@@ -14,22 +14,20 @@ class TestCase extends \Test\TestCase
         $kernel = new CliKernel();
         $this->bootstrap(...$kernel->getBootstrappers());
 
-        $outFile = '/tmp/test.stdout';
-        $errFile = '/tmp/test.stderr';
-        $stdout = fopen($outFile, 'w');
-        $stderr = fopen($errFile, 'w');
+        $stdout = fopen('php://memory', 'w+');
+        $stderr = fopen('php://memory', 'w');
         $this->mocks['console']->setStdout($stdout);
         $this->mocks['console']->setStderr($stderr);
 
         $returnVar = $this->app->run($kernel, $arguments);
 
-        fclose($stdout);
-        fclose($stderr);
+        rewind($stdout);
+        rewind($stderr);
 
         return [
             'returnVar' => $returnVar,
-            'output' => file_get_contents($outFile),
-            'errors' => file_get_contents($errFile)
+            'output' => stream_get_contents($stdout),
+            'errors' => stream_get_contents($stderr)
         ];
     }
 
