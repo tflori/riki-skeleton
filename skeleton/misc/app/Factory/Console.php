@@ -8,6 +8,10 @@ class Console extends AbstractFactory
 {
     protected $shared = true;
 
+    /**
+     * @return \Hugga\Console
+     * @codeCoverageIgnore Console get's mocked in tests
+     */
     protected function build()
     {
         return new \Hugga\Console($this->container->get('logger'));
