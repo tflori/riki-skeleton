@@ -39,7 +39,7 @@ class Application extends \Riki\Application
         parent::initDependencies();
 
         // Register a namespace for factories
-        $this->registerNamespace('App\Factory');
+        $this->registerNamespace('App\Factory', 'Factory');
 
         // Register Whoops\Run under whoops
         $this->share('whoops', Whoops\Run::class);
