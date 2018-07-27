@@ -15,7 +15,7 @@ class TestCase extends \Test\TestCase
         $this->bootstrap(...$kernel->getBootstrappers());
 
         $stdout = fopen('php://memory', 'w+');
-        $stderr = fopen('php://memory', 'w');
+        $stderr = fopen('php://memory', 'w+');
         $this->mocks['console']->setStdout($stdout);
         $this->mocks['console']->setStderr($stderr);
 

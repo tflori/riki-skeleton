@@ -20,7 +20,7 @@ class Cache extends AbstractCommand
         }
 
         $cachePath = $this->app->environment->getConfigCachePath();
-        if (!file_exists(dirname($cachePath)) && !mkdir(dirname($cachePath), umask() ^ 0777, true)) {
+        if (!file_exists(dirname($cachePath)) && !@mkdir(dirname($cachePath), umask() ^ 0777, true)) {
             $this->console->error('Could not create parent directory for caching!');
             return 1;
         } elseif (!is_writeable(dirname($cachePath)) || !is_dir(dirname($cachePath))) {
@@ -30,7 +30,7 @@ class Cache extends AbstractCommand
 
         // create a fresh configuration (don't use the cached version)
         $config = new Config($this->app->environment);
-        if (!file_put_contents($cachePath, serialize($config))) {
+        if (!@file_put_contents($cachePath, serialize($config))) {
             $this->console->error('Failed to cache the configuration!');
             return 3;
         }
