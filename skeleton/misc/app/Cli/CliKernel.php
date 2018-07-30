@@ -52,12 +52,17 @@ class CliKernel extends \App\Kernel
             }
         } catch (ArgumentException $exception) {
             $console->error($exception->getMessage());
-            $console->write(PHP_EOL . $getOpt->getHelpText());
-            exit;
+            $console->write($getOpt->getHelpText());
+            return 128;
         }
 
         $command = $getOpt->getCommand();
         if (!$command || $getOpt->getOption('help')) {
+            if ($cmdName = $getOpt->getOperand(0)) {
+                $console->error(sprintf('Command %s not found', $cmdName));
+            } elseif (!$getOpt->getOption('help')) {
+                $console->error('No command given');
+            }
             $console->write($getOpt->getHelpText());
             return 0;
         }
@@ -78,6 +83,12 @@ class CliKernel extends \App\Kernel
         return [new PlainTextHandler()];
     }
 
+    /**
+     * Create a getOpt instance for this kernel, add default options and load registered commands.
+     *
+     * @param Application $app
+     * @return bool
+     */
     public function loadCommands(Application $app): bool
     {
         if (!$this->getOpt) {
@@ -94,7 +105,7 @@ class CliKernel extends \App\Kernel
             ]);
 
             foreach (static::$commands as $class) {
-                $getOpt->addCommand(new $class($app, $app->console));
+                $getOpt->addCommand($app->make($class, $app, $app->console));
             }
         }
 

@@ -35,11 +35,6 @@ class TestCase extends \Test\TestCase
     {
         parent::initDependencies();
 
-        $this->mocks['console'] = m::mock(Console::class, [])->makePartial();
-        $this->mocks['console']->disableAnsi();
-//        $this->mocks['console']->shouldNotReceive(['ask', 'getLine']);
-        $this->app->instance('console', $this->mocks['console']);
-
         $this->mocks['getOpt'] = m::mock(GetOpt::class)->makePartial();
         $this->app->instance(GetOpt::class, $this->mocks['getOpt']);
     }

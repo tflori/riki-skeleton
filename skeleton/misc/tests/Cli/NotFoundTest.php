@@ -13,6 +13,7 @@ class NotFoundTest extends TestCase
         $result = $this->start('any:command');
 
         self::assertSame(0, $result['returnVar']);
+        self::assertSame('Command any:command not found', trim($result['errors']));
         self::assertSame('GetOpts Help Text', $result['output']);
     }
 }

@@ -5,6 +5,7 @@ namespace Test;
 use App\Application;
 use App\Config;
 use App\Environment;
+use Hugga\Console;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
 use Mockery as m;
 use Whoops;
@@ -52,6 +53,14 @@ abstract class TestCase extends MockeryTestCase
         $this->app->instance('whoops', $whoops);
         $whoops->unregister();
         $whoops->shouldReceive('register')->andReturnSelf()->byDefault();
+
+        /** @var Console|m\Mock $console */
+        $console = $this->mocks['console'] = m::mock(Console::class, [])->makePartial();
+        $console->disableAnsi();
+        $console->setStdout(fopen('php://memory', 'w'));
+        $console->setStderr(fopen('php://memory', 'w'));
+//        $this->mocks['console']->shouldNotReceive(['ask', 'getLine']);
+        $this->app->instance('console', $this->mocks['console']);
     }
 
     /**
