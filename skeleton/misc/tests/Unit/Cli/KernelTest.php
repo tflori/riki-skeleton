@@ -121,7 +121,7 @@ class KernelTest extends TestCase
     public function increasesVerbosityLevel()
     {
         $this->mocks['getOpt']->addCommand(
-            Command::create('foo', function(GetOpt $getOpt) {
+            Command::create('foo', function (GetOpt $getOpt) {
                 return 0;
             })
         );
@@ -135,7 +135,7 @@ class KernelTest extends TestCase
     public function setsVerbosityLevelHigh()
     {
         $this->mocks['getOpt']->addCommand(
-            Command::create('foo', function(GetOpt $getOpt) {
+            Command::create('foo', function (GetOpt $getOpt) {
                 return 0;
             })
         );
