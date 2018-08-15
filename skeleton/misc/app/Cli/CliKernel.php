@@ -28,7 +28,7 @@ class CliKernel extends \App\Kernel
              [$this, 'loadCommands']
          );
     }
-
+update composer.tpl.json
     /**
      * @param array|string|Arguments $arguments
      * @return int
