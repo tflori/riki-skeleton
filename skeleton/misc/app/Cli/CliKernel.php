@@ -24,11 +24,11 @@ class CliKernel extends \App\Kernel
 
     public function __construct()
     {
-         $this->addBootstrappers(
-             [$this, 'loadCommands']
-         );
+        $this->addBootstrappers(
+            [$this, 'loadCommands']
+        );
     }
-update composer.tpl.json
+
     /**
      * @param array|string|Arguments $arguments
      * @return int
