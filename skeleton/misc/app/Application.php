@@ -12,6 +12,11 @@ use Whoops\Handler\PlainTextHandler;
  *
  * @package App
  *
+ * @method static Application app()
+ * @method static Environment environment()
+ * @method static Config config()
+ * @method static Logger logger()
+ * @property-read Application $app
  * @property-read Environment $environment
  * @property-read Config $config
  * @property-read Logger $logger

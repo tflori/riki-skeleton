@@ -14,7 +14,7 @@ class HttpKernel extends \App\Kernel
     }
 
     // @todo this should return a response object
-    public function handle(\Riki\Application $app, $request = null): array
+    public function handle($request = null): array
     {
         if (!$request) {
             // @todo create a request object

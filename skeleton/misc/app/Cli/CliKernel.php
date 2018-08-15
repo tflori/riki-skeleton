@@ -13,7 +13,7 @@ class CliKernel extends \App\Kernel
         // $this->addBootstrappers();
     }
 
-    public function handle(\Riki\Application $app, $arguments = null): int
+    public function handle($arguments = null): int
     {
         if (!$arguments) {
             // @todo change this to your needs
