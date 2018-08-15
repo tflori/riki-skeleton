@@ -9,9 +9,18 @@
   "require": {
     "php": "^7.1",
     "ext-mbstring": "*",
+    "tflori/riki-framework": "dev-master",
+
     "filp/whoops": "^2.2",
     "monolog/monolog": "^1.9",
-    "tflori/riki-framework": "dev-master"
+
+    "ulrichsg/getopt-php": "^3.2",
+    "tflori/hugga": "dev-master",
+
+    "tflori/tal": "dev-master",
+    "nikic/fast-route": "^1.3.0",
+    "psr/http-server-handler": "^1.0.0",
+    "psr/http-server-middleware": "^1.0.0"
   },
   "autoload": {
     "psr-4": {

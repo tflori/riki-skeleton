@@ -74,7 +74,7 @@ class KernelTest extends TestCase
             ->once();
         $this->mocks['console']->shouldNotReceive('error');
 
-        $this->kernel->handle($this->app, '--help');
+        $this->kernel->handle('--help');
     }
 
     /** @test */
@@ -83,7 +83,7 @@ class KernelTest extends TestCase
         $this->mocks['console']->shouldReceive('error')->with('No command given')
             ->once();
 
-        $this->kernel->handle($this->app, '');
+        $this->kernel->handle('');
     }
 
     /** @test */
@@ -96,7 +96,7 @@ class KernelTest extends TestCase
 
         $this->mocks['console']->shouldNotReceive('error');
 
-        $this->kernel->handle($this->app, 'something --help');
+        $this->kernel->handle('something --help');
     }
 
     /** @test */
@@ -112,7 +112,7 @@ class KernelTest extends TestCase
         $this->mocks['console']->shouldReceive('write')->with('GetOpts help text')->once();
         $this->mocks['console']->shouldReceive('error')->with('Operand foo is required')->once();
 
-        $returnVar = $this->kernel->handle($this->app, 'something');
+        $returnVar = $this->kernel->handle('something');
 
         self::assertSame(128, $returnVar);
     }
@@ -128,7 +128,7 @@ class KernelTest extends TestCase
 
         $this->mocks['console']->shouldReceive('increaseVerbosity')->with()->times(3);
 
-        $this->kernel->handle($this->app, 'foo -vvv');
+        $this->kernel->handle('foo -vvv');
     }
 
     /** @test */
@@ -142,6 +142,6 @@ class KernelTest extends TestCase
 
         $this->mocks['console']->shouldReceive('setVerbosity')->with(Console::WEIGHT_HIGH)->once();
 
-        $this->kernel->handle($this->app, 'foo -q');
+        $this->kernel->handle('foo -q');
     }
 }

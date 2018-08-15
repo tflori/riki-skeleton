@@ -1,6 +1,7 @@
 /vendor
 /docker-compose.yml
 /.env
+.phpunit.result.cache
 
 ### remove all this
 # ignore files for test environment

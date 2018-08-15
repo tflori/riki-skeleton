@@ -30,13 +30,12 @@ class CliKernel extends \App\Kernel
     }
 
     /**
-     * @param \Riki\Application      $app
      * @param array|string|Arguments $arguments
      * @return int
      */
-    public function handle(\Riki\Application $app, $arguments = null): int
+    public function handle($arguments = null): int
     {
-        /** @var Application $app */
+        $app = Application::app();
         $getOpt = $this->getOpt;
         $console = $app->console;
 

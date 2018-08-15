@@ -27,6 +27,13 @@ abstract class TestCase extends MockeryTestCase
         $this->initApplication(realpath(__DIR__ . '/..'));
     }
 
+    protected function tearDown()
+    {
+        parent::tearDown();
+        Application::app()->destroy();
+    }
+
+
     public function initApplication($basePath)
     {
         $this->basePath = $basePath;

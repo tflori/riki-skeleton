@@ -3,12 +3,14 @@
 namespace Test\Http;
 
 use App\Http\HttpKernel;
+use Tal\Psr7Extended\ServerResponseInterface;
+use Tal\ServerRequest;
 
 abstract class TestCase extends \Test\TestCase
 {
-    protected function get(string $uri, array $query = [])
+    protected function get(string $uri, array $query = []): ServerResponseInterface
     {
-        $request = ['uri' => $uri, 'get' => $query, 'post' => [], 'files' => []];
+        $request = (new ServerRequest('get', $uri, []))->withQueryParams($query);
         $kernel = new HttpKernel();
         return $this->app->run($kernel, $request);
     }
