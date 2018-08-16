@@ -23,6 +23,14 @@ class Skeleton
     /** @var string */
     protected $debug = null;
 
+    protected $excludes = [
+        '~^/vendor/.*$~',
+        '~^/bin/(?!cli|\.gitignore).*$~',
+        '~^/composer.dev.json$~',
+        '~^/composer.json$~',
+        '~^/composer.lock$~',
+    ];
+
     public function __construct()
     {
         error_reporting(E_ALL^E_WARNING^E_NOTICE);
@@ -90,7 +98,7 @@ class Skeleton
 
         $this->pretend = (bool)$getOpt->getOption('pretend');
         $this->quiet = (bool)$getOpt->getOption('quiet');
-        $this->debug = (bool)$getOpt->getOption('debug');
+        $this->debug = $getOpt->getOption('debug');
 
         $vars = [
             'projectName' => $getOpt->getOption('project-name'),
@@ -202,8 +210,13 @@ class Skeleton
                 continue;
             }
 
+            $relativePath = substr($fileInfo->getPathname(), strlen($templatePath));
+            if ($this->isExcluded($relativePath)) {
+                continue;
+            }
+
             // determine target path
-            $target = str_replace('.tpl', '', $rootPath . substr($fileInfo->getPathname(), strlen($templatePath)));
+            $target = str_replace('.tpl', '', $rootPath . $relativePath);
 
             // create the parent directory
             if (!file_exists(dirname($target))) {
@@ -480,6 +493,17 @@ class Skeleton
             return;
         }
         file_put_contents($path, implode('', array_slice($file, 0, array_search("### remove all this\n", $file))));
+    }
+
+    protected function isExcluded(string $path)
+    {
+        foreach ($this->excludes as $exclude) {
+            if (preg_match($exclude, $path)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
 

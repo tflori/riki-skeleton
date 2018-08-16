@@ -11,7 +11,7 @@
     "ext-mbstring": "*",
     "filp/whoops": "^2.2",
     "monolog/monolog": "^1.9",
-    "tflori/riki-framework": "dev-master"
+    "tflori/riki-framework": "1.0.0-alpha.3"
   },
   "autoload": {
     "psr-4": {
