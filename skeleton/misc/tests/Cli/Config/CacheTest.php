@@ -60,7 +60,7 @@ class CacheTest extends TestCase
             $this->markTestSkipped('This test can not be executed from super user');
             return;
         }
-        $cachePath = $this->getFileFromRoot('/var');
+        $cachePath = $this->getFileFromRoot('/var', true);
         if (!$cachePath) {
             $this->markTestSkipped('Could not find a non-writeable file for test');
             return;
@@ -93,13 +93,29 @@ class CacheTest extends TestCase
         self::assertSame(0, $result['returnVar']);
     }
 
+    /** @test */
+    public function clearsTheConfigCache()
+    {
+        $cachePath = '/tmp/riki-test-config.spo';
+        $this->mocks['environment']->shouldReceive('getConfigCachePath')->with()
+            ->once()->andReturn($cachePath);
+        file_put_contents($cachePath, serialize(['pretty' => 'useless']));
+
+        $result = $this->start('config:cache', '--clear');
+
+        self::assertFileNotExists($cachePath);
+        self::assertEquals('Configuration cache cleared successfully!', trim($result['output']));
+        self::assertSame(0, $result['returnVar']);
+    }
+
     /**
      * Get a file owned by root
      *
      * @param string $dir
+     * @return null|string
      * @throws \Exception
      */
-    protected function getFileFromRoot(string $dir)
+    protected function getFileFromRoot(string $dir, bool $writeableDir)
     {
         $dh = opendir($dir);
         if (!$dh) {
@@ -113,11 +129,12 @@ class CacheTest extends TestCase
 
             $path = $dir . DIRECTORY_SEPARATOR . $file;
             if (is_dir($path)) {
-                if (is_readable($path) && $fileFromRoot = $this->getFileFromRoot($path)) {
+                if (is_readable($path) && $fileFromRoot = $this->getFileFromRoot($path, $writeableDir)) {
                     return $fileFromRoot;
                 }
                 continue;
-            } elseif (@fileowner($path) === 0 && !is_writeable($path) && is_writeable(dirname($path))) {
+            } elseif (@fileowner($path) === 0 && !is_writeable($path) &&
+                      is_writeable(dirname($path)) xor !$writeableDir) {
                 return $path;
             }
         }
