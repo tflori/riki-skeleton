@@ -40,6 +40,6 @@ $r->addGroup('/foo', function (MiddlewareRouteCollector $router) {
     });
 });
 
-$r->get('/error', ['ErrorController', 'unexpectedError']);
+$r->get('/error', 'unexpectedError@ErrorController');
 
 $r->get('/', 'IndexController');

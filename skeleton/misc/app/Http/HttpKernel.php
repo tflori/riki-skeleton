@@ -10,6 +10,7 @@ use App\Http\Router\MiddlewareRouteCollector;
 use App\Http\Router\MiddlewareRouter;
 use FastRoute;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Tal\ServerRequest;
 use Whoops\Handler\Handler;
@@ -27,6 +28,40 @@ class HttpKernel extends \App\Kernel
         $this->addBootstrappers(
             [$this, 'loadRoutes']
         );
+    }
+
+    /**
+     * Get a RequestHandler or Middleware for $handler
+     *
+     * @param string|array|callable $handler
+     * @return RequestHandlerInterface|MiddlewareInterface|callable
+     */
+    public static function getHandler($handler)
+    {
+        if (is_callable($handler)) {
+            return $handler;
+        }
+
+        if (is_array($handler)) {
+            $class = array_shift($handler);
+            $args = $handler;
+        } elseif (is_string($handler)) {
+            $class = $handler;
+            $args = [];
+            if (1 < $pos = strpos($handler, '@')) {
+                $class = substr($handler, $pos + 1);
+                $args[] = substr($handler, 0, $pos);
+            }
+        }
+
+        if (!class_exists($class)) {
+            if (!class_exists(self::CONTROLLER_NAMESPACE . '\\' . $class)) {
+                throw new \InvalidArgumentException(sprintf('Class %s not found', $class));
+            }
+            $class = self::CONTROLLER_NAMESPACE . '\\' . $class;
+        }
+
+        return Application::app()->make($class, ...$args);
     }
 
     public function handle(ServerRequest $request = null): ResponseInterface
@@ -60,29 +95,9 @@ class HttpKernel extends \App\Kernel
             $request = $request->withAttribute('arguments', $arguments);
         }
 
-        return Application::app()->make(Dispatcher::class, $handlers, function ($handler) {
-            if (is_callable($handler)) {
-                return $handler;
-            }
-
-            if (is_array($handler)) {
-                $class = array_shift($handler);
-                $args = $handler;
-            } else {
-                $class = $handler;
-                $args = [];
-            }
-
-            if (!class_exists($class)) {
-                if (class_exists(self::CONTROLLER_NAMESPACE . '\\' . $class)) {
-                    $class = self::CONTROLLER_NAMESPACE . '\\' . $class;
-                } else {
-                    throw new \InvalidArgumentException(sprintf('Class %s not found', $class));
-                }
-            }
-
-            return Application::app()->make($class, ...$args);
-        })->handle($request);
+        return Application::app()
+            ->make(Dispatcher::class, $handlers, [static::class, 'getHandler'])
+            ->handle($request);
     }
 
     public function getErrorHandlers(Application $app): array
