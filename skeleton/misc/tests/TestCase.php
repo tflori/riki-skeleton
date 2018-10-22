@@ -62,7 +62,8 @@ abstract class TestCase extends MockeryTestCase
         $whoops->shouldReceive('register')->andReturnSelf()->byDefault();
 
         /** @var Console|m\Mock $console */
-        $console = $this->mocks['console'] = m::mock(Console::class, [])->makePartial();
+        $console = $this->mocks['console'] = m::mock(Console::class)->makePartial();
+        $console->__construct();
         $console->disableAnsi();
         $console->setStdout(fopen('php://memory', 'w'));
         $console->setStderr(fopen('php://memory', 'w'));
