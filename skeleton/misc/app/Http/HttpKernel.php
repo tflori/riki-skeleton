@@ -38,27 +38,29 @@ class HttpKernel extends \App\Kernel
             // @codeCoverageIgnoreEnd
         }
 
+        $handlers = [];
+        $arguments = [];
         $result = $this->router->dispatch($request->getMethod(), $request->getRelativePath());
         switch ($result[0]) {
             case FastRoute\Dispatcher::FOUND:
-                list(, $handler, $arguments) = $result;
+                list(, $handlers, $arguments) = $result;
                 break;
             case FastRoute\Dispatcher::METHOD_NOT_ALLOWED:
-                list(, $allowedMethods, $handler) = $result;
-                $handler[] = ['ErrorController', 'methodNotAllowed'];
+                list(, $allowedMethods, $handlers) = $result;
+                $handlers[] = ['ErrorController', 'methodNotAllowed'];
                 $arguments = ['allowedMethods' => $allowedMethods];
                 break;
             case FastRoute\Dispatcher::NOT_FOUND:
-                list(, $handler) = $result;
-                $handler[] = ['ErrorController', 'notFound'];
+                list(, $handlers) = $result;
+                $handlers[] = ['ErrorController', 'notFound'];
                 break;
         }
 
-        if (isset($arguments)) {
+        if (!empty($arguments)) {
             $request = $request->withAttribute('arguments', $arguments);
         }
 
-        return (new Dispatcher($handler, function ($handler) {
+        return Application::app()->make(Dispatcher::class, $handlers, function ($handler) {
             if (is_callable($handler)) {
                 return $handler;
             }
@@ -80,7 +82,7 @@ class HttpKernel extends \App\Kernel
             }
 
             return Application::app()->make($class, ...$args);
-        }))->handle($request);
+        })->handle($request);
     }
 
     public function getErrorHandlers(Application $app): array
