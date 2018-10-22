@@ -43,7 +43,7 @@ class MiddlewareDataGenerator extends GroupCountBased
             $numGroups++;
         }
 
-        $regex = '~^(?|' . implode('|', $regexes) . ')$~';
+        $regex = '~^(?|' . implode('|', $regexes) . ')~';
         return ['regex' => $regex, 'groupMap' => $groupMap];
     }
 }

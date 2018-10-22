@@ -73,7 +73,7 @@ class MiddlewareDataGeneratorTest extends TestCase
         $dataGenerator->addGroup($routeParser->parse('/baz')[0], 'bazHandler');
 
         self::assertSame(
-            '~^(?|/foo|/bar()|/baz()())$~',
+            '~^(?|/foo|/bar()|/baz()())~',
             $dataGenerator->getData()[2]['regex']
         );
     }
@@ -89,7 +89,7 @@ class MiddlewareDataGeneratorTest extends TestCase
         $dataGenerator->addGroup($routeParser->parse('/longer/route')[0], 'fooHandler');
 
         self::assertSame(
-            '~^(?|/longer/route|/long/route()|/short()())$~',
+            '~^(?|/longer/route|/long/route()|/short()())~',
             $dataGenerator->getData()[2]['regex']
         );
     }

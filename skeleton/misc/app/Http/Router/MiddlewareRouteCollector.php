@@ -5,33 +5,44 @@ namespace App\Http\Router;
 class MiddlewareRouteCollector extends \FastRoute\RouteCollector
 {
     /** @var array */
-    protected $handler = [];
+    protected $handlers = [];
 
-    public function addHandler(...$handler)
+    /**
+     * Append $handlers to prepended handlers
+     *
+     * @param mixed ...$handlers
+     */
+    public function addHandler(...$handlers)
     {
-        array_push($this->handler, ...$handler);
+        array_push($this->handlers, ...$handlers);
     }
 
-    public function setHandler(...$handler)
+    /**
+     * Set prepended handlers to $handler
+     *
+     * @param mixed ...$handlers
+     * @codeCoverageIgnore trivial
+     */
+    public function setHandler(...$handlers)
     {
-        $this->handler = $handler;
+        $this->handlers = $handlers;
     }
 
     public function addGroup($prefix, callable $callback)
     {
-        $previousHandler = $this->handler;
+        $previousHandler = $this->handlers;
         parent::addGroup($prefix, $callback);
         if ($this->dataGenerator instanceof MiddlewareDataGenerator) {
             $routeData = $this->routeParser->parse($prefix);
-            $this->dataGenerator->addGroup($routeData[0], $this->handler);
+            $this->dataGenerator->addGroup($routeData[0], $this->handlers);
         }
-        $this->handler = $previousHandler;
+        $this->handlers = $previousHandler;
     }
 
     public function addRoute($httpMethod, $route, $handler, ...$handlers)
     {
         array_unshift($handlers, $handler);
-        parent::addRoute($httpMethod, $route, array_merge($this->handler, $handlers));
+        parent::addRoute($httpMethod, $route, array_merge($this->handlers, $handlers));
     }
 
     /**
