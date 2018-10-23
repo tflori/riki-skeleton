@@ -8,10 +8,10 @@ use Tal\ServerResponse;
 
 class ErrorController extends AbstractController
 {
-    public function notFound()
+    public function notFound(): ServerResponse
     {
         $response = new ServerResponse(404);
-        $response->setBody(stream_for($this->htmlErrorPage(
+        $response->setBody(stream_for($this->buildHtmlErrorPage(
             404,
             'File Not Found',
             sprintf(
@@ -23,18 +23,30 @@ class ErrorController extends AbstractController
         return $response;
     }
 
-    public function unexpectedError()
+    public function unexpectedError($exception = null): ServerResponse
     {
         $response = new ServerResponse(500);
-        $response->setBody(stream_for($this->htmlErrorPage(
+        $response->setBody(stream_for($this->buildHtmlErrorPage(
             500,
             'Unexpected Error',
-            'Whoops something went wrong!'
+            'Whoops something went wrong!',
+            $exception
         )));
         return $response;
     }
 
-    protected function htmlErrorPage($status, $title, $message)
+    /**
+     * Builds an error page from template error.php
+     *
+     * You may want to implement a template engine and replace this calls with something else.
+     *
+     * @param int $status
+     * @param string $title
+     * @param string $message
+     * @param \Exception $exception
+     * @return false|string
+     */
+    protected function buildHtmlErrorPage(int $status, string $title, string $message, $exception = null)
     {
         ob_start();
         include DI::environment()->viewPath('error.php');

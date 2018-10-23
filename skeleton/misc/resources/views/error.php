@@ -11,6 +11,9 @@
         <div class="container">
             <h4><?= $title ?></h4>
             <p><?= $message ?></p>
+            <?php if ($exception instanceof Exception) : ?>
+                <p><?= $exception->getMessage() ?> (<?= $exception->getFile() ?>:<?= $exception->getLine() ?>)</p>
+            <?php endif; ?>
         </div>
 
         <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>

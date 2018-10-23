@@ -3,7 +3,6 @@
 namespace App\Http;
 
 use App\Application;
-use App\Http\Controller\AbstractController;
 use App\Http\Controller\ErrorController;
 use App\Http\Router\MiddlewareDataGenerator;
 use App\Http\Router\MiddlewareRouteCollector;
@@ -39,7 +38,33 @@ class HttpKernel extends \App\Kernel
     public static function getHandler($handler)
     {
         if (is_callable($handler)) {
-            return $handler;
+            switch (gettype($handler)) {
+                case 'string':
+                    if (strpos($handler, '::') === false) {
+                        return $handler;
+                    }
+                    list($class, $method) = explode('::', $handler);
+                    break;
+
+                case 'array':
+                    if (is_object($handler[0])) {
+                        return $handler;
+                    }
+                    list($class, $method) = $handler;
+                    break;
+
+                default:
+                case 'object':
+                    return $handler;
+            }
+            // for static calls we have to check more... because is callable returns true for non static methods
+            if (class_exists($class)) {
+                $class = new \ReflectionClass($class);
+                $method = $class->getMethod($method);
+                if (!$class->isAbstract() && $method->isStatic() && $method->isPublic() && !$method->isAbstract()) {
+                    return $handler;
+                }
+            }
         }
 
         if (is_array($handler)) {
@@ -107,10 +132,12 @@ class HttpKernel extends \App\Kernel
             // $handler->setEditor(...)
             return [$handler];
         } else {
-            return [function () {
+            return [function ($exception = null) {
                 // This code will not be executed in tests
                 // @codeCoverageIgnoreStart
-                Application::app()->make(ErrorController::class)->unexpectedError()->send();
+                /** @var ErrorController $errorController */
+                $errorController = self::getHandler([ErrorController::class, 'unexpectedError']);
+                $errorController->unexpectedError($exception)->send();
                 return Handler::QUIT;
                 // @codeCoverageIgnoreEnd
             }];
