@@ -39,7 +39,8 @@ abstract class TestCase extends MockeryTestCase
         $this->basePath = $basePath;
 
         /** @var Application|m\Mock $app */
-        $app = $this->app = m::mock(Application::class . '[]', [$basePath]);
+        $app = $this->app = m::mock(Application::class)->makePartial();
+        $app->__construct($basePath);
 
         $this->initDependencies();
     }

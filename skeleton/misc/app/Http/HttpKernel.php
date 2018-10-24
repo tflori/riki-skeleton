@@ -133,13 +133,10 @@ class HttpKernel extends \App\Kernel
             return [$handler];
         } else {
             return [function ($exception = null) {
-                // This code will not be executed in tests
-                // @codeCoverageIgnoreStart
                 /** @var ErrorController $errorController */
                 $errorController = self::getHandler([ErrorController::class, 'unexpectedError']);
                 $errorController->unexpectedError($exception)->send();
                 return Handler::QUIT;
-                // @codeCoverageIgnoreEnd
             }];
         }
     }
