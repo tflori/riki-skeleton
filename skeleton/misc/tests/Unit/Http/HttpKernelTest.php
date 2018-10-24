@@ -6,7 +6,7 @@ use App\Http\HttpKernel;
 use Test\TestCase;
 use Whoops\Handler\PrettyPageHandler;
 
-class KernelTest extends TestCase
+class HttpKernelTest extends TestCase
 {
     /** @test */
     public function definesACustomErrorHandler()

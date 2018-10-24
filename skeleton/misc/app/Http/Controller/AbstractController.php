@@ -14,7 +14,7 @@ abstract class AbstractController implements RequestHandlerInterface
     /** @var string */
     protected $action;
 
-    public function __construct($action)
+    public function __construct($action = 'getIndex')
     {
         $this->action = $action;
     }

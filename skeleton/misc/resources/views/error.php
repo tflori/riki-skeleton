@@ -13,6 +13,8 @@
             <p><?= $message ?></p>
             <?php if ($exception instanceof Exception) : ?>
                 <p><?= $exception->getMessage() ?> (<?= $exception->getFile() ?>:<?= $exception->getLine() ?>)</p>
+                <p>Please add this to an error report:</p><!-- maybe add encryption here -->
+                <pre><?= chunk_split(base64_encode($exception->__toString())) ?></pre>
             <?php endif; ?>
         </div>
 

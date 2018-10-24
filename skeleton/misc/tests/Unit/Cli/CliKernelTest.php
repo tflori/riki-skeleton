@@ -13,7 +13,7 @@ use Test\TestCase;
 use Whoops\Handler\PlainTextHandler;
 use Mockery as m;
 
-class KernelTest extends TestCase
+class CliKernelTest extends TestCase
 {
     /** @var CliKernel */
     protected $kernel;
