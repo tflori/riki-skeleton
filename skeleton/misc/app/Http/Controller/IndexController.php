@@ -27,7 +27,7 @@ class IndexController implements RequestHandlerInterface
      */
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        throw new Exception('This should happen - it was expected. Sorry!');
+//        throw new Exception('This should happen - it was expected. Sorry!');
         // you may want to create a factory to create responses
         $response = new ServerResponse(200);
         $response->setBody(stream_for('<!DOCTYPE html><html><head><title>index</title></head></html>'));
