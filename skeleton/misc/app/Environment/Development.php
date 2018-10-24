@@ -19,6 +19,6 @@ class Development extends Environment
 
     public function canShowErrors()
     {
-        return false;
+        return true;
     }
 }

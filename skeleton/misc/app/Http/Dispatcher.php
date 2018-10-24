@@ -56,7 +56,14 @@ class Dispatcher implements RequestHandlerInterface
 
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        $handler = call_user_func($this->resolver, array_shift($this->queue));
+        if (empty($this->queue)) {
+            throw new \LogicException('Queue is empty');
+        }
+
+        $handler = array_shift($this->queue);
+        if (!$handler instanceof MiddlewareInterface && !$handler instanceof RequestHandlerInterface) {
+            $handler = call_user_func($this->resolver, $handler);
+        }
 
         if ($handler instanceof MiddlewareInterface) {
             return $handler->process($request, $this);
