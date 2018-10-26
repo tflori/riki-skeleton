@@ -5,7 +5,6 @@ namespace Test\Unit\Http;
 use App\Http\Controller\ErrorController;
 use App\Http\Dispatcher;
 use App\Http\HttpKernel;
-use PHPUnit\Framework\MockObject\Invokable;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
@@ -67,11 +66,20 @@ class DispatcherTest extends TestCase
         $httpKernel->shouldReceive('getHandler')->with('unexpectedError@ErrorController')
             ->once()->andReturn($errorController);
 
-        $response = $dispatcher->handle(new ServerRequest('GET', '/'));
+        $dispatcher->handle(new ServerRequest('GET', '/'));
     }
 
+    /** @test */
     public function usesCallablesWithRequestAndHandler()
     {
-//        $middleware = m::mock(Invokable::class)
+        $spy = m::spy(function (RequestInterface $request, RequestHandlerInterface $handler) {
+            return new ServerResponse(333);
+        });
+
+        $dispatcher = new Dispatcher([$spy], [HttpKernel::class, 'getHandler']);
+
+        $dispatcher->handle($request = new ServerRequest('GET', '/'));
+
+        $spy->shouldHaveBeenCalled()->with($request, $dispatcher)->once();
     }
 }
