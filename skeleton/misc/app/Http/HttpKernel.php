@@ -105,11 +105,13 @@ class HttpKernel extends \App\Kernel
             case FastRoute\Dispatcher::FOUND:
                 list(, $handlers, $arguments) = $result;
                 break;
+
             case FastRoute\Dispatcher::METHOD_NOT_ALLOWED:
                 list(, $allowedMethods, $handlers) = $result;
                 $handlers[] = ['ErrorController', 'methodNotAllowed'];
                 $arguments = ['allowedMethods' => $allowedMethods];
                 break;
+
             case FastRoute\Dispatcher::NOT_FOUND:
                 list(, $handlers) = $result;
                 $handlers[] = ['ErrorController', 'notFound'];
@@ -121,7 +123,7 @@ class HttpKernel extends \App\Kernel
         }
 
         return Application::app()
-            ->make(Dispatcher::class, $handlers, [static::class, 'getHandler'])
+            ->make(Dispatcher::class, $handlers, [self::class, 'getHandler'])
             ->handle($request);
     }
 
@@ -160,6 +162,7 @@ class HttpKernel extends \App\Kernel
         // @todo maybe you want to load different route files or collect them from annotations..
         include __DIR__ . '/routes.php';
         $router->addGroup('/', function () {
+            // this ensures that the handler on root level are loaded for non matching routes
         });
     }
 }

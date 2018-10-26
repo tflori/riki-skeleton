@@ -3,10 +3,15 @@
 namespace Test\Unit\Http;
 
 use App\Http\Controller\ErrorController;
+use App\Http\Dispatcher;
 use App\Http\HttpKernel;
 use App\Http\Router\MiddlewareDataGenerator;
 use App\Http\Router\MiddlewareRouteCollector;
+use App\Http\Router\MiddlewareRouter;
+use FastRoute\Dispatcher as RouteDispatcher;
 use FastRoute\RouteParser\Std;
+use Tal\Psr7Extended\ServerRequestInterface;
+use Tal\ServerRequest;
 use Tal\ServerResponse;
 use Test\TestCase;
 use Whoops\Handler\Handler;
@@ -138,5 +143,31 @@ class HttpKernelTest extends TestCase
             ->once()->andReturn($errorController);
 
         HttpKernel::getHandler('unexpectedError@ErrorController');
+    }
+
+    /** @test */
+    public function usesHandlersAndArgumentsFromRouter()
+    {
+        $this->app->instance(MiddlewareRouter::class, $router = m::mock(MiddlewareRouter::class));
+        /** @var HttpKernel|m\Mock $kernel */
+        $kernel = m::mock(HttpKernel::class)->makePartial();
+        $kernel->loadRoutes($this->app);
+        $request = new ServerRequest('GET', '/23');
+        $response = new ServerResponse();
+
+        $router->shouldReceive('dispatch')->with('GET', '/23')
+            ->once()->andReturn([RouteDispatcher::FOUND, ['fooHandler', 'barHandler'], ['id' => 23]]);
+        $this->app->shouldReceive('make')
+            ->with(Dispatcher::class, ['fooHandler', 'barHandler'], [HttpKernel::class, 'getHandler'])
+            ->once()->andReturn($dispatcher = m::mock(Dispatcher::class));
+        $dispatcher->shouldReceive('handle')->with(m::type(ServerRequest::class))
+            ->once()->andReturnUsing(function (ServerRequestInterface $request) use ($response) {
+                self::assertSame(['id' => 23], $request->getAttribute('arguments'));
+                return $response;
+            });
+
+        $result = $kernel->handle($request);
+
+        self::assertSame($response, $result);
     }
 }
