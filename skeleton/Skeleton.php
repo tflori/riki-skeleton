@@ -485,14 +485,12 @@ class Skeleton
     protected function cleanupGitignore(string $path)
     {
         $file = file($path);
+        $commentLine = array_search("### remove all this\n", $file);
         if ($this->pretend) {
-            $this->info(sprintf(
-                'removing all lines from gitignore beginning in line %d',
-                array_search("### remove all this\n", $file)
-            ));
+            $this->info(sprintf('removing all lines from gitignore beginning in line %d', $commentLine));
             return;
         }
-        file_put_contents($path, implode('', array_slice($file, 0, array_search("### remove all this\n", $file))));
+        file_put_contents($path, implode('', array_slice($file, 0, $commentLine)));
     }
 
     protected function isExcluded(string $path)

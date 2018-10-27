@@ -9,9 +9,7 @@ services:
     command: info
     volumes:
       - "./skeleton/misc:/riki"
-      - "./vendor:/riki/vendor"
-      - "./composer.json:/riki/composer.json"
-      - "${HOME}/.cache/composer:/composer/cache"
+      - "${HOME}/.composer/cache:/composer/cache"
 
   php:
     build:
@@ -20,8 +18,6 @@ services:
     working_dir: "/riki"
     volumes:
       - "./skeleton/misc:/riki"
-      - "./vendor:/riki/vendor"
-      - "./composer.json:/riki/composer.json"
       - "./skeleton/misc/storage/logs:/var/log/php"
       - "./docker.dev/php/xdebug.ini:/etc/php7/conf.d/xdebug.ini"
       - "./docker.dev/php/debug.sh:/usr/bin/debug"
