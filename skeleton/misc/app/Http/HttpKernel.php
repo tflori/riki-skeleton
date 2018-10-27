@@ -19,6 +19,9 @@ class HttpKernel extends \App\Kernel
 {
     const CONTROLLER_NAMESPACE = 'App\Http\Controller';
 
+    /** @var ServerRequest */
+    protected static $lastRequest;
+
     /** @var MiddlewareRouter */
     protected $router;
 
@@ -98,6 +101,8 @@ class HttpKernel extends \App\Kernel
             // @codeCoverageIgnoreEnd
         }
 
+        self::$lastRequest = $request;
+
         $handlers = [];
         $arguments = [];
         $result = $this->router->dispatch($request->getMethod(), $request->getRelativePath());
@@ -122,14 +127,9 @@ class HttpKernel extends \App\Kernel
             $request = $request->withAttribute('arguments', $arguments);
         }
 
-        try {
-            return Application::app()
-                ->make(Dispatcher::class, $handlers, [self::class, 'getHandler'])
-                ->handle($request);
-        } catch (\Throwable $exception) {
-            return self::getHandler([ErrorController::class, 'unexpectedError'])
-                ->handle($request->withAttribute('arguments', ['exception' => $exception]));
-        }
+        return Application::app()
+            ->make(Dispatcher::class, $handlers, [self::class, 'getHandler'])
+            ->handle($request);
     }
 
     public function getErrorHandlers(Application $app): array
@@ -140,9 +140,11 @@ class HttpKernel extends \App\Kernel
             return [$handler];
         } else {
             return [function ($exception = null) {
+                $request = (self::$lastRequest ?? ServerRequest::fromGlobals())
+                    ->withAttribute('arguments', ['exception' => $exception]);
                 /** @var ErrorController $errorController */
-                $errorController = self::getHandler(ErrorController::class);
-                $errorController->unexpectedError($exception)->send();
+                $errorController = self::getHandler([ErrorController::class, 'unexpectedError']);
+                $errorController->handle($request)->send();
                 return Handler::QUIT;
             }];
         }

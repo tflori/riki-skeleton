@@ -49,7 +49,7 @@ class HttpKernelTest extends TestCase
         $errorController = m::mock(ErrorController::class);
         $response = m::mock(ServerResponse::class);
         $this->app->instance(ErrorController::class, $errorController);
-        $errorController->shouldReceive('unexpectedError')->with($exception)
+        $errorController->shouldReceive('handle')->with(m::type(ServerRequest::class))
             ->once()->andReturn($response);
         $response->shouldReceive('send')->with()
             ->once();
@@ -178,59 +178,6 @@ class HttpKernelTest extends TestCase
         $expectedHandlers = ['middleware', [ErrorController::class, 'notFound']];
 
         $this->mockDispatcher($method, $uri, $routerResponse, $expectedHandlers);
-    }
-
-    /** @test */
-    public function dispatchesUnexpectedError()
-    {
-        $method = 'GET';
-        $uri = '/anything';
-        $routerResponse = [RouteDispatcher::FOUND, ['anyHandler'], []
-        ];
-
-        $request = new ServerRequest($method, $uri);
-        $exception = new \Exception('This was expected');
-
-        /** @var MiddlewareRouter|m\Mock $kernel */
-        $router = $this->mocks['router'] = m::mock(MiddlewareRouter::class);
-        $this->app->instance(MiddlewareRouter::class, $router);
-
-        /** @var HttpKernel|m\Mock $kernel */
-        $kernel = $this->mocks['kernel'] = m::mock(HttpKernel::class)->makePartial();
-        $kernel->loadRoutes($this->app);
-
-        /** @var Dispatcher|m\Mock $dispatcher */
-        $dispatcher = $this->mocks['dispatcher'] = m::mock(Dispatcher::class);
-
-        // first: dispatches the method and uri to router
-        $router->shouldReceive('dispatch')->with($method, $uri)
-            ->once()->andReturn($routerResponse)->ordered();
-
-        // second: creates the dispatcher
-        $this->app->shouldReceive('make')
-            ->with(Dispatcher::class, ['anyHandler'], [HttpKernel::class, 'getHandler'])
-            ->once()->andReturn($dispatcher)->ordered();
-
-        // third: dispatches the request to dispatcher
-        $dispatcher->shouldReceive('handle')->with(m::type(ServerRequest::class))
-            ->once()->andThrow($exception)->ordered();
-
-        // fifth: error controller gets generated
-        $this->app->shouldReceive('make')
-            ->with(ErrorController::class, 'unexpectedError')
-            ->once()->andReturn($errorController = m::mock(ErrorController::class))->ordered();
-
-        // six: error controller gets called
-        $errorController->shouldReceive('handle')->with(m::type(ServerRequest::class))
-            ->once()->andReturnUsing(function (ServerRequestInterface $dispatched) use (&$request) {
-                // we store the request that got dispatched
-                $request = $dispatched;
-                return new ServerResponse();
-            })->ordered();
-
-        $kernel->handle($request);
-
-        self::assertSame(['exception' => $exception], $request->getAttribute('arguments'));
     }
 
     protected function mockDispatcher(

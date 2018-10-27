@@ -47,4 +47,28 @@ class ErrorControllerTest extends TestCase
         self::assertContains('File Not Found', $body);
         self::assertContains('/any/path', $body);
     }
+
+    /** @test */
+    public function returns405Response()
+    {
+        $errorController = new ErrorController('methodNotAllowed');
+        $request = (new ServerRequest('POST', '/any/path'))
+            ->withAttribute('arguments', ['allowedMethods' => ['GET']]);
+
+        self::assertSame(405, $errorController->handle($request)->getStatusCode());
+    }
+
+    /** @test */
+    public function rendersMethodNotAllowed()
+    {
+        $errorController = new ErrorController('methodNotAllowed');
+        $request = (new ServerRequest('POST', '/any/path'))
+            ->withAttribute('arguments', ['allowedMethods' => ['GET']]);
+
+        $body = $errorController->handle($request)->getBody()->getContents();
+
+        self::assertContains('Method Not Allowed', $body);
+        self::assertContains('/any/path', $body);
+        self::assertContains('GET', $body);
+    }
 }

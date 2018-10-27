@@ -26,10 +26,11 @@ class AbstractControllerTest extends TestCase
     {
         $controller = m::mock(ErrorController::class, ['unexpectedError'])->makePartial();
         $request = m::mock(ServerRequest::class);
+        $exception = new \Exception('Foo Bar');
 
         $request->shouldReceive('getAttribute')->with('arguments')
-            ->once()->andReturn(['exception'])->ordered();
-        $controller->shouldReceive('unexpectedError')->with('exception')
+            ->once()->andReturn(['exception' => $exception])->ordered();
+        $controller->shouldReceive('unexpectedError')->with($exception)
             ->once()->andReturn(m::mock(ServerResponse::class))->ordered();
 
         $controller->handle($request);
