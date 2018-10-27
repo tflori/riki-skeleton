@@ -9,9 +9,7 @@ services:
     command: info
     volumes:
       - "./skeleton/misc:/riki"
-      - "./vendor:/riki/vendor"
-      - "./composer.json:/riki/composer.json"
-      - "${HOME}/.cache/composer:/composer/cache"
+      - "${HOME}/.composer/cache:/composer/cache"
 
   php:
     build:
