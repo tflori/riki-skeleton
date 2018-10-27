@@ -191,16 +191,6 @@ class Skeleton
 
         $this->rename($target . '/bin/cli', $target . '/bin/' . $binaryFile);
         $this->chmod($target . '/bin/' . $binaryFile, umask() ^ 0777 | 0111);
-
-        if (!chdir($target)) {
-            throw new \Exception('Could not change to target directory');
-        }
-
-        // composer install
-        exec('which composer', $dummy, $returnVar);
-        if ($returnVar == 0) {
-            system('composer install');
-        }
     }
 
     /**
