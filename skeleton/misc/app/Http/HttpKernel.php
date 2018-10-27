@@ -108,13 +108,13 @@ class HttpKernel extends \App\Kernel
 
             case FastRoute\Dispatcher::METHOD_NOT_ALLOWED:
                 list(, $allowedMethods, $handlers) = $result;
-                $handlers[] = ['ErrorController', 'methodNotAllowed'];
+                $handlers[] = [ErrorController::class, 'methodNotAllowed'];
                 $arguments = ['allowedMethods' => $allowedMethods];
                 break;
 
             case FastRoute\Dispatcher::NOT_FOUND:
                 list(, $handlers) = $result;
-                $handlers[] = ['ErrorController', 'notFound'];
+                $handlers[] = [ErrorController::class, 'notFound'];
                 break;
         }
 
@@ -122,9 +122,14 @@ class HttpKernel extends \App\Kernel
             $request = $request->withAttribute('arguments', $arguments);
         }
 
-        return Application::app()
-            ->make(Dispatcher::class, $handlers, [self::class, 'getHandler'])
-            ->handle($request);
+        try {
+            return Application::app()
+                ->make(Dispatcher::class, $handlers, [self::class, 'getHandler'])
+                ->handle($request);
+        } catch (\Throwable $exception) {
+            return self::getHandler([ErrorController::class, 'unexpectedError'])
+                ->handle($request->withAttribute('arguments', ['exception' => $exception]));
+        }
     }
 
     public function getErrorHandlers(Application $app): array
@@ -136,7 +141,7 @@ class HttpKernel extends \App\Kernel
         } else {
             return [function ($exception = null) {
                 /** @var ErrorController $errorController */
-                $errorController = self::getHandler([ErrorController::class, 'unexpectedError']);
+                $errorController = self::getHandler(ErrorController::class);
                 $errorController->unexpectedError($exception)->send();
                 return Handler::QUIT;
             }];

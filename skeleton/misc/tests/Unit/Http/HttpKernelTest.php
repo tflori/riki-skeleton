@@ -146,28 +146,133 @@ class HttpKernelTest extends TestCase
     }
 
     /** @test */
-    public function usesHandlersAndArgumentsFromRouter()
+    public function dispatchesFoundRoute()
     {
-        $this->app->instance(MiddlewareRouter::class, $router = m::mock(MiddlewareRouter::class));
+        $method = 'GET';
+        $uri = '/23';
+        $routerResponse = [RouteDispatcher::FOUND, ['fooHandler', 'barHandler'], ['id' => 23]];
+        $expectedHandlers = ['fooHandler', 'barHandler'];
+        $expectedArguments = ['id' => 23];
+
+        $this->mockDispatcher($method, $uri, $routerResponse, $expectedHandlers, $expectedArguments);
+    }
+
+    /** @test */
+    public function dispatchesMethodNotAllowedError()
+    {
+        $method = 'POST';
+        $uri = '/23';
+        $routerResponse = [RouteDispatcher::METHOD_NOT_ALLOWED, ['GET'], ['middleware']];
+        $expectedHandlers = ['middleware', [ErrorController::class, 'methodNotAllowed']];
+        $expectedArguments = ['allowedMethods' => ['GET']];
+
+        $this->mockDispatcher($method, $uri, $routerResponse, $expectedHandlers, $expectedArguments);
+    }
+
+    /** @test */
+    public function dispatchesNotFoundError()
+    {
+        $method = 'GET';
+        $uri = '/any/route';
+        $routerResponse = [RouteDispatcher::NOT_FOUND, ['middleware']];
+        $expectedHandlers = ['middleware', [ErrorController::class, 'notFound']];
+
+        $this->mockDispatcher($method, $uri, $routerResponse, $expectedHandlers);
+    }
+
+    /** @test */
+    public function dispatchesUnexpectedError()
+    {
+        $method = 'GET';
+        $uri = '/anything';
+        $routerResponse = [RouteDispatcher::FOUND, ['anyHandler'], []
+        ];
+
+        $request = new ServerRequest($method, $uri);
+        $exception = new \Exception('This was expected');
+
+        /** @var MiddlewareRouter|m\Mock $kernel */
+        $router = $this->mocks['router'] = m::mock(MiddlewareRouter::class);
+        $this->app->instance(MiddlewareRouter::class, $router);
+
         /** @var HttpKernel|m\Mock $kernel */
-        $kernel = m::mock(HttpKernel::class)->makePartial();
+        $kernel = $this->mocks['kernel'] = m::mock(HttpKernel::class)->makePartial();
         $kernel->loadRoutes($this->app);
-        $request = new ServerRequest('GET', '/23');
-        $response = new ServerResponse();
 
-        $router->shouldReceive('dispatch')->with('GET', '/23')
-            ->once()->andReturn([RouteDispatcher::FOUND, ['fooHandler', 'barHandler'], ['id' => 23]]);
+        /** @var Dispatcher|m\Mock $dispatcher */
+        $dispatcher = $this->mocks['dispatcher'] = m::mock(Dispatcher::class);
+
+        // first: dispatches the method and uri to router
+        $router->shouldReceive('dispatch')->with($method, $uri)
+            ->once()->andReturn($routerResponse)->ordered();
+
+        // second: creates the dispatcher
         $this->app->shouldReceive('make')
-            ->with(Dispatcher::class, ['fooHandler', 'barHandler'], [HttpKernel::class, 'getHandler'])
-            ->once()->andReturn($dispatcher = m::mock(Dispatcher::class));
+            ->with(Dispatcher::class, ['anyHandler'], [HttpKernel::class, 'getHandler'])
+            ->once()->andReturn($dispatcher)->ordered();
+
+        // third: dispatches the request to dispatcher
         $dispatcher->shouldReceive('handle')->with(m::type(ServerRequest::class))
-            ->once()->andReturnUsing(function (ServerRequestInterface $request) use ($response) {
-                self::assertSame(['id' => 23], $request->getAttribute('arguments'));
-                return $response;
-            });
+            ->once()->andThrow($exception)->ordered();
 
-        $result = $kernel->handle($request);
+        // fifth: error controller gets generated
+        $this->app->shouldReceive('make')
+            ->with(ErrorController::class, 'unexpectedError')
+            ->once()->andReturn($errorController = m::mock(ErrorController::class))->ordered();
 
-        self::assertSame($response, $result);
+        // six: error controller gets called
+        $errorController->shouldReceive('handle')->with(m::type(ServerRequest::class))
+            ->once()->andReturnUsing(function (ServerRequestInterface $dispatched) use (&$request) {
+                // we store the request that got dispatched
+                $request = $dispatched;
+                return new ServerResponse();
+            })->ordered();
+
+        $kernel->handle($request);
+
+        self::assertSame(['exception' => $exception], $request->getAttribute('arguments'));
+    }
+
+    protected function mockDispatcher(
+        string $method,
+        string $uri,
+        array $routerResponse,
+        array $expectedHandlers,
+        array $expectedArguments = null
+    ) {
+        $request = new ServerRequest($method, $uri);
+
+        /** @var MiddlewareRouter|m\Mock $kernel */
+        $router = $this->mocks['router'] = m::mock(MiddlewareRouter::class);
+        $this->app->instance(MiddlewareRouter::class, $router);
+
+        /** @var HttpKernel|m\Mock $kernel */
+        $kernel = $this->mocks['kernel'] = m::mock(HttpKernel::class)->makePartial();
+        $kernel->loadRoutes($this->app);
+
+        /** @var Dispatcher|m\Mock $dispatcher */
+        $dispatcher = $this->mocks['dispatcher'] = m::mock(Dispatcher::class);
+
+        // first: dispatches the method and uri to router
+        $router->shouldReceive('dispatch')->with($method, $uri)
+            ->once()->andReturn($routerResponse)->ordered();
+
+        // second: creates the dispatcher
+        $this->app->shouldReceive('make')
+            ->with(Dispatcher::class, $expectedHandlers, [HttpKernel::class, 'getHandler'])
+            ->once()->andReturn($dispatcher)->ordered();
+
+        // third: dispatches the request to dispatcher
+        $dispatcher->shouldReceive('handle')->with(m::type(ServerRequest::class))
+            ->once()->andReturnUsing(function (ServerRequestInterface $dispatched) use (&$request) {
+                // we store the request that got dispatched
+                $request = $dispatched;
+                return new ServerResponse();
+            })->ordered();
+
+        $kernel->handle($request);
+
+        self::assertSame($expectedArguments, $request->getAttribute('arguments'));
+        return $request;
     }
 }
