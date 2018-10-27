@@ -3,7 +3,7 @@
   "description": "Skeleton application using riki framework",
   "type": "project",
   "license": "MIT",
-  "bin": ["skeleton/riki-skeleton", "bin/cli"],
+  "bin": ["skeleton/riki-skeleton"],
   "require": {
     "php": "^7.1",
     "ext-mbstring": "*",
