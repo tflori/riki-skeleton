@@ -191,6 +191,16 @@ class Skeleton
 
         $this->rename($target . '/bin/cli', $target . '/bin/' . $binaryFile);
         $this->chmod($target . '/bin/' . $binaryFile, umask() ^ 0777 | 0111);
+
+        if (!chdir($target)) {
+            throw new \Exception('Could not change to target directory');
+        }
+
+        // composer install
+        exec('which composer', $dummy, $returnVar);
+        if ($returnVar == 0) {
+            system('composer install');
+        }
     }
 
     /**
@@ -485,14 +495,12 @@ class Skeleton
     protected function cleanupGitignore(string $path)
     {
         $file = file($path);
+        $commentLine = array_search("### remove all this\n", $file);
         if ($this->pretend) {
-            $this->info(sprintf(
-                'removing all lines from gitignore beginning in line %d',
-                array_search("### remove all this\n", $file)
-            ));
+            $this->info(sprintf('removing all lines from gitignore beginning in line %d', $commentLine));
             return;
         }
-        file_put_contents($path, implode('', array_slice($file, 0, array_search("### remove all this\n", $file))));
+        file_put_contents($path, implode('', array_slice($file, 0, $commentLine)));
     }
 
     protected function isExcluded(string $path)
