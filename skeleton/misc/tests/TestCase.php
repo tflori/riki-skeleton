@@ -38,7 +38,8 @@ abstract class TestCase extends MockeryTestCase
         $this->basePath = $basePath;
 
         /** @var Application|m\Mock $app */
-        $app = $this->app = m::mock(Application::class . '[]', [$basePath]);
+        $app = $this->app = m::mock(Application::class)->makePartial();
+        $app->__construct($basePath);
 
         $this->initDependencies();
     }
@@ -59,6 +60,16 @@ abstract class TestCase extends MockeryTestCase
         $this->app->instance('whoops', $whoops);
         $whoops->unregister();
         $whoops->shouldReceive('register')->andReturnSelf()->byDefault();
+    }
+
+    /**
+     * @param callable ...$bootstrappers
+     */
+    protected function bootstrap(callable ...$bootstrappers)
+    {
+        foreach ($bootstrappers as $bootstrapper) {
+            call_user_func($bootstrapper, $this->app);
+        }
     }
 
     /**

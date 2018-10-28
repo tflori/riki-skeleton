@@ -6,7 +6,7 @@ use App\Cli\CliKernel;
 use Test\TestCase;
 use Whoops\Handler\PlainTextHandler;
 
-class KernelTest extends TestCase
+class CliKernelTest extends TestCase
 {
     /** @test */
     public function definesAPlainTextHandler()

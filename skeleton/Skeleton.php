@@ -262,7 +262,7 @@ class Skeleton
 
                 $this->write($target, $content);
             } else {
-                $this->copy($fileInfo->getPathname(), $target);
+                $this->write($target, file_get_contents($fileInfo->getPathname()));
             }
         }
     }
@@ -297,7 +297,6 @@ class Skeleton
             include($template);
         }
 
-        $this->contents[$target] = (string)$content;
         return [(string)$content, $target];
     }
 
@@ -316,7 +315,7 @@ class Skeleton
         }
 
         $validate = null;
-        if (is_callable($answers[0])) {
+        if (isset($answers[0]) && is_callable($answers[0])) {
             $validate = $answers;
             $answers = [];
         }
@@ -415,6 +414,7 @@ class Skeleton
     protected function write(string $path, string $content)
     {
         if ($this->pretend) {
+            $this->contents[$path] = $content;
             $this->info('write ' . $path);
             return;
         }
