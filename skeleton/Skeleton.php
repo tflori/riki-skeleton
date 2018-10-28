@@ -11,6 +11,12 @@ use GetOpt\Option;
 
 class Skeleton
 {
+    const AVAILABLE_FEATURES = [
+        'docker' => 'y',
+        'console' => 'n',
+        'routing' => 'n',
+    ];
+
     /** @var array */
     protected $colors = [];
 
@@ -59,8 +65,6 @@ class Skeleton
             Option::create('n', 'source-namespace', GetOpt::REQUIRED_ARGUMENT)
                 ->setDescription('Define the namespace for sources')
                 ->setValidation(...$this->createValidator('namespace')),
-            Option::create('D', 'no-docker')
-                ->setDescription('Don\'t create docker files'),
             Option::create(null, 'debug', GetOpt::REQUIRED_ARGUMENT)
                 ->setDescription('Print the result for files matching <arg>'),
             Option::create(null, 'pretend')
@@ -75,6 +79,17 @@ class Skeleton
             Command::create('create-project', [$this, 'createProject'])
                 ->addOperand(Operand::create('target', Operand::REQUIRED))
         );
+
+        foreach (array_keys(self::AVAILABLE_FEATURES) as $feature) {
+            $getOpt->addOption(
+                Option::create(null, $feature)
+                    ->setDescription('Add feature ' . $feature . ' without asking')
+            );
+            $getOpt->addOption(
+                Option::create(null, 'no-' . $feature)
+                    ->setDescription('Skip asking for feature ' . $feature)
+            );
+        }
 
         // process arguments and catch user errors
         try {
@@ -106,10 +121,15 @@ class Skeleton
         $vars = [
             'projectName' => $getOpt->getOption('project-name'),
             'sourceNamespace' => $getOpt->getOption('source-namespace'),
+            'features' => [],
         ];
 
-        if ($getOpt->getOption('no-docker')) {
-            $vars['useDocker'] = false;
+        foreach (array_keys(self::AVAILABLE_FEATURES) as $feature) {
+            if ($getOpt->getOption($feature)) {
+                $vars['features'][$feature] = true;
+            } elseif ($getOpt->getOption('no-' . $feature)) {
+                $vars['features'][$feature] = false;
+            }
         }
 
         // call the requested command
@@ -183,8 +203,21 @@ class Skeleton
 
         $this->deployFiles(__DIR__ . '/misc', $target, $vars);
 
-        if (@$vars['useDocker'] || $this->ask('Do you want to use docker?', 'y', ['y', 'n']) === 'y') {
-            $this->deployFiles(__DIR__ . '/docker', $target, $vars);
+        foreach (self::AVAILABLE_FEATURES as $feature => $default) {
+            if (!file_exists(__DIR__ . '/' . $feature)) {
+                continue;
+            }
+
+            if (!isset($vars['features'][$feature])) {
+                $answer = $this->ask('Do you want to use ' . $feature . '?', $default, ['y', 'n']);
+                $vars['features'][$feature] = $answer === 'y';
+            }
+
+            if (!$vars['features'][$feature]) {
+                continue;
+            }
+
+            $this->deployFiles(__DIR__ . '/' . $feature, $target, $vars);
         }
 
         $this->rename($target . '/bin/cli', $target . '/bin/' . $binaryFile);
