@@ -10,20 +10,9 @@ namespace App;
  */
 class Environment extends \Riki\Environment
 {
-    protected function path(string ...$path)
+    public function canShowErrors()
     {
-        array_unshift($path, $this->getBasePath());
-        return implode(DIRECTORY_SEPARATOR, $path);
-    }
-
-    public function storagePath(string ...$path): string
-    {
-        return $this->path('storage', ...$path);
-    }
-
-    public function cachePath(string ...$path): string
-    {
-        return $this->storagePath('cache', ...$path);
+        return false;
     }
 
     public function getConfigCachePath(): string
@@ -31,9 +20,9 @@ class Environment extends \Riki\Environment
         return $this->cachePath('config.spo');
     }
 
-    public function logPath(string ...$path): string
+    public function storagePath(string ...$path): string
     {
-        return $this->storagePath('logs', ...$path);
+        return $this->path('storage', ...$path);
     }
 
     public function resourcePath(string ...$path)
@@ -41,13 +30,24 @@ class Environment extends \Riki\Environment
         return $this->path('resources', ...$path);
     }
 
+    public function cachePath(string ...$path): string
+    {
+        return $this->storagePath('cache', ...$path);
+    }
+
+    public function logPath(string ...$path): string
+    {
+        return $this->storagePath('logs', ...$path);
+    }
+
     public function viewPath(string ...$path): string
     {
         return $this->resourcePath('views', ...$path);
     }
 
-    public function canShowErrors()
+    protected function path(string ...$path)
     {
-        return false;
+        array_unshift($path, $this->getBasePath());
+        return implode(DIRECTORY_SEPARATOR, $path);
     }
 }
