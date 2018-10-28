@@ -10,14 +10,9 @@ namespace App;
  */
 class Environment extends \Riki\Environment
 {
-    public function storagePath(string $path = null): string
+    public function canShowErrors()
     {
-        return $this->getBasePath() . '/storage' . ($path ? DIRECTORY_SEPARATOR . $path : '');
-    }
-
-    public function cachePath(string $path = null): string
-    {
-        return $this->storagePath('cache' . ($path ? DIRECTORY_SEPARATOR . $path : ''));
+        return false;
     }
 
     public function getConfigCachePath(): string
@@ -25,13 +20,24 @@ class Environment extends \Riki\Environment
         return $this->cachePath('config.spo');
     }
 
-    public function logPath(string $path = null): string
+    public function storagePath(string ...$path): string
     {
-        return $this->storagePath('logs' . ($path ? DIRECTORY_SEPARATOR . $path : ''));
+        return $this->path('storage', ...$path);
     }
 
-    public function canShowErrors()
+    public function cachePath(string ...$path): string
     {
-        return false;
+        return $this->storagePath('cache', ...$path);
+    }
+
+    public function logPath(string ...$path): string
+    {
+        return $this->storagePath('logs', ...$path);
+    }
+
+    protected function path(string ...$path)
+    {
+        array_unshift($path, $this->getBasePath());
+        return implode(DIRECTORY_SEPARATOR, $path);
     }
 }
