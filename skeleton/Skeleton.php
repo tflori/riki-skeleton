@@ -31,6 +31,9 @@ class Skeleton
         '~^/composer.lock$~',
     ];
 
+    /** @var string[] */
+    protected $contents = [];
+
     public function __construct()
     {
         error_reporting(E_ALL^E_WARNING^E_NOTICE);
@@ -178,14 +181,9 @@ class Skeleton
             );
         }
 
-        if (!isset($vars['useDocker'])) {
-            $answer = $this->ask('Do you want to use docker?', 'y', ['y', 'n']);
-            $vars['useDocker'] = $useDocker = $answer === 'y';
-        }
-
-
         $this->deployFiles(__DIR__ . '/misc', $target, $vars);
-        if ($useDocker) {
+
+        if (@$vars['useDocker'] || $this->ask('Do you want to use docker?', 'y', ['y', 'n']) === 'y') {
             $this->deployFiles(__DIR__ . '/docker', $target, $vars);
         }
 
@@ -214,9 +212,7 @@ class Skeleton
             if ($this->isExcluded($relativePath)) {
                 continue;
             }
-
-            // determine target path
-            $target = str_replace('.tpl', '', $rootPath . $relativePath);
+            $target = $rootPath . $relativePath;
 
             // create the parent directory
             if (!file_exists(dirname($target))) {
@@ -224,12 +220,11 @@ class Skeleton
             }
 
             if (strpos($fileInfo->getPathname(), '.tpl') !== false) {
-                $content = $this->parse($fileInfo->getPathname(), $vars);
+                list($content, $target) = $this->parse($fileInfo->getPathname(), $target, $vars);
 
                 if ($this->debug && strpos($target, $this->debug) !== false) {
                     $this->info('With the following content:');
                     echo rtrim($content) . PHP_EOL . PHP_EOL;
-                    continue;
                 }
 
                 $this->write($target, $content);
@@ -240,18 +235,37 @@ class Skeleton
     }
 
     /**
-     * Parse $template as php using $vars
+     * Parse $template for $target as php using $vars
+     *
+     * Returns content and new target path
      *
      * @param string $template
      * @param array $vars
-     * @return string
+     * @return string[]
      */
-    protected function parse(string $template, array $vars)
+    protected function parse(string $template, string $target, array $vars)
     {
-        ob_start();
         extract($vars, EXTR_SKIP);
-        include($template);
-        return ob_get_clean();
+
+        if (strpos($template, '.tpl.php') === false) {
+            // simple template
+            ob_start();
+            include($template);
+            $content = ob_get_clean();
+            $target = str_replace('.tpl', '', $target);
+        } else {
+            // use content class as helper
+            $target = str_replace('.tpl.php', '', $target);
+            $content = $this->contents[$target] ?? '';
+            if (file_exists($target)) {
+                $content = file_get_contents($target);
+            }
+            $content = new Content($content);
+            include($template);
+        }
+
+        $this->contents[$target] = (string)$content;
+        return [(string)$content, $target];
     }
 
     /**
