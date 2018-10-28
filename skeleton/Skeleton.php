@@ -11,6 +11,12 @@ use GetOpt\Option;
 
 class Skeleton
 {
+    const AVAILABLE_FEATURES = [
+        'docker' => 'y',
+        'console' => 'n',
+        'routing' => 'n',
+    ];
+
     /** @var array */
     protected $colors = [];
 
@@ -30,6 +36,9 @@ class Skeleton
         '~^/composer.json$~',
         '~^/composer.lock$~',
     ];
+
+    /** @var string[] */
+    protected $contents = [];
 
     public function __construct()
     {
@@ -56,8 +65,6 @@ class Skeleton
             Option::create('n', 'source-namespace', GetOpt::REQUIRED_ARGUMENT)
                 ->setDescription('Define the namespace for sources')
                 ->setValidation(...$this->createValidator('namespace')),
-            Option::create('D', 'no-docker')
-                ->setDescription('Don\'t create docker files'),
             Option::create(null, 'debug', GetOpt::REQUIRED_ARGUMENT)
                 ->setDescription('Print the result for files matching <arg>'),
             Option::create(null, 'pretend')
@@ -72,6 +79,17 @@ class Skeleton
             Command::create('create-project', [$this, 'createProject'])
                 ->addOperand(Operand::create('target', Operand::REQUIRED))
         );
+
+        foreach (array_keys(self::AVAILABLE_FEATURES) as $feature) {
+            $getOpt->addOption(
+                Option::create(null, $feature)
+                    ->setDescription('Add feature ' . $feature . ' without asking')
+            );
+            $getOpt->addOption(
+                Option::create(null, 'no-' . $feature)
+                    ->setDescription('Skip asking for feature ' . $feature)
+            );
+        }
 
         // process arguments and catch user errors
         try {
@@ -103,10 +121,15 @@ class Skeleton
         $vars = [
             'projectName' => $getOpt->getOption('project-name'),
             'sourceNamespace' => $getOpt->getOption('source-namespace'),
+            'features' => [],
         ];
 
-        if ($getOpt->getOption('no-docker')) {
-            $vars['useDocker'] = false;
+        foreach (array_keys(self::AVAILABLE_FEATURES) as $feature) {
+            if ($getOpt->getOption($feature)) {
+                $vars['features'][$feature] = true;
+            } elseif ($getOpt->getOption('no-' . $feature)) {
+                $vars['features'][$feature] = false;
+            }
         }
 
         // call the requested command
@@ -178,15 +201,23 @@ class Skeleton
             );
         }
 
-        if (!isset($vars['useDocker'])) {
-            $answer = $this->ask('Do you want to use docker?', 'y', ['y', 'n']);
-            $vars['useDocker'] = $useDocker = $answer === 'y';
-        }
-
-
         $this->deployFiles(__DIR__ . '/misc', $target, $vars);
-        if ($useDocker) {
-            $this->deployFiles(__DIR__ . '/docker', $target, $vars);
+
+        foreach (self::AVAILABLE_FEATURES as $feature => $default) {
+            if (!file_exists(__DIR__ . '/' . $feature)) {
+                continue;
+            }
+
+            if (!isset($vars['features'][$feature])) {
+                $answer = $this->ask('Do you want to use ' . $feature . '?', $default, ['y', 'n']);
+                $vars['features'][$feature] = $answer === 'y';
+            }
+
+            if (!$vars['features'][$feature]) {
+                continue;
+            }
+
+            $this->deployFiles(__DIR__ . '/' . $feature, $target, $vars);
         }
 
         $this->rename($target . '/bin/cli', $target . '/bin/' . $binaryFile);
@@ -214,9 +245,7 @@ class Skeleton
             if ($this->isExcluded($relativePath)) {
                 continue;
             }
-
-            // determine target path
-            $target = str_replace('.tpl', '', $rootPath . $relativePath);
+            $target = $rootPath . $relativePath;
 
             // create the parent directory
             if (!file_exists(dirname($target))) {
@@ -224,12 +253,11 @@ class Skeleton
             }
 
             if (strpos($fileInfo->getPathname(), '.tpl') !== false) {
-                $content = $this->parse($fileInfo->getPathname(), $vars);
+                list($content, $target) = $this->parse($fileInfo->getPathname(), $target, $vars);
 
                 if ($this->debug && strpos($target, $this->debug) !== false) {
                     $this->info('With the following content:');
                     echo rtrim($content) . PHP_EOL . PHP_EOL;
-                    continue;
                 }
 
                 $this->write($target, $content);
@@ -240,18 +268,37 @@ class Skeleton
     }
 
     /**
-     * Parse $template as php using $vars
+     * Parse $template for $target as php using $vars
+     *
+     * Returns content and new target path
      *
      * @param string $template
      * @param array $vars
-     * @return string
+     * @return string[]
      */
-    protected function parse(string $template, array $vars)
+    protected function parse(string $template, string $target, array $vars)
     {
-        ob_start();
         extract($vars, EXTR_SKIP);
-        include($template);
-        return ob_get_clean();
+
+        if (strpos($template, '.tpl.php') === false) {
+            // simple template
+            ob_start();
+            include($template);
+            $content = ob_get_clean();
+            $target = str_replace('.tpl', '', $target);
+        } else {
+            // use content class as helper
+            $target = str_replace('.tpl.php', '', $target);
+            $content = $this->contents[$target] ?? '';
+            if (file_exists($target)) {
+                $content = file_get_contents($target);
+            }
+            $content = new Content($content);
+            include($template);
+        }
+
+        $this->contents[$target] = (string)$content;
+        return [(string)$content, $target];
     }
 
     /**

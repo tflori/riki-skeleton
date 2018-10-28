@@ -1,17 +1,21 @@
 {
-  "name": "tflori/riki-skeleton",
-  "description": "Skeleton application using riki framework",
-  "type": "project",
-  "license": "MIT",
-  "bin": ["skeleton/riki-skeleton"],
-  "require": {
-    "php": "^7.1",
-    "ext-mbstring": "*",
-    "ulrichsg/getopt-php": "^3.2"
-  },
-  "scripts": {
-    "post-create-project-cmd": [
-      "skeleton/post-create"
-    ]
-  }
+    "name": "tflori/riki-skeleton",
+    "description": "Skeleton application using riki framework",
+    "type": "project",
+    "license": "MIT",
+    "bin": [
+        "skeleton/riki-skeleton"
+    ],
+    "require": {
+        "php": "^7.1",
+        "ext-mbstring": "*",
+        "ext-json": "*",
+        "ulrichsg/getopt-php": "^3.2",
+        "ckr/arraymerger": "^2.0.0"
+    },
+    "scripts": {
+        "post-create-project-cmd": [
+            "skeleton/post-create"
+        ]
+    }
 }
