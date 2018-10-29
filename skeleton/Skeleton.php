@@ -153,7 +153,7 @@ class Skeleton
 
         // cleanup
         $this->remove($target . '/setup');
-        $this->remove($target . '/build');
+        $this->remove($target . '/riki-dev');
         $this->remove($target . '/skeleton');
         $this->remove($target . '/composer.lock');
         $this->remove($target . '/vendor');
