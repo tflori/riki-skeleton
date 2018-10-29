@@ -1,10 +1,7 @@
 /vendor
 /docker-compose.yml
 /.env
-
-### remove all this
-# ignore files for test environment
 composer.lock
-/skeleton/misc/composer.json
-/skeleton/misc/vendor
-/skeleton/misc/.env
+/build/*
+!/build/app
+/skeleton/dev/docker-compose.yml
