@@ -7,6 +7,6 @@
 
 $content->mergeJson([
     'require' => [
-        'tflori\/riki-framework' => 'dev-master',
+        'tflori/riki-framework' => 'dev-master',
     ]
 ]);
