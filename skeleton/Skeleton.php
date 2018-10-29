@@ -65,6 +65,8 @@ class Skeleton
             Option::create('n', 'source-namespace', GetOpt::REQUIRED_ARGUMENT)
                 ->setDescription('Define the namespace for sources')
                 ->setValidation(...$this->createValidator('namespace')),
+            Option::create('a', 'all-features')
+                ->setDescription('Install all features'),
             Option::create(null, 'debug', GetOpt::REQUIRED_ARGUMENT)
                 ->setDescription('Print the result for files matching <arg>'),
             Option::create(null, 'pretend')
@@ -78,6 +80,10 @@ class Skeleton
         $getOpt->addCommand(
             Command::create('create-project', [$this, 'createProject'])
                 ->addOperand(Operand::create('target', Operand::REQUIRED))
+        );
+        $getOpt->addCommand(
+            Command::create('dev', [$this, 'createDev'])
+                ->addOption(Option::create(null, 'start'))
         );
 
         foreach (array_keys(self::AVAILABLE_FEATURES) as $feature) {
@@ -125,7 +131,7 @@ class Skeleton
         ];
 
         foreach (array_keys(self::AVAILABLE_FEATURES) as $feature) {
-            if ($getOpt->getOption($feature)) {
+            if ($getOpt->getOption($feature) || $getOpt->getOption('all-features')) {
                 $vars['features'][$feature] = true;
             } elseif ($getOpt->getOption('no-' . $feature)) {
                 $vars['features'][$feature] = false;
@@ -133,20 +139,21 @@ class Skeleton
         }
 
         // call the requested command
-        call_user_func($command->getHandler(), $vars, ...$getOpt->getOperands());
+        call_user_func($command->getHandler(), $getOpt, $vars);
     }
 
     /**
+     * @param GetOpt $getOpt
      * @param array $vars
-     * @throws \Exception
      */
-    protected function setup(array $vars)
+    protected function setup(GetOpt $getOpt, array $vars)
     {
         $target = getcwd();
         $this->deploy($vars, $target);
 
         // cleanup
         $this->remove($target . '/setup');
+        $this->remove($target . '/build');
         $this->remove($target . '/skeleton');
         $this->remove($target . '/composer.lock');
         $this->remove($target . '/vendor');
@@ -156,15 +163,14 @@ class Skeleton
         if (file_exists($target . '/.git')) {
             $this->remove($target . '/.git');
         }
-        $this->cleanupGitignore($target . '/.gitignore');
     }
 
     /**
-     * @param array  $vars
+     * @param GetOpt $getOpt
+     * @param array $vars
      * @param string $target
-     * @throws \Exception
      */
-    protected function createProject(array $vars, string $target)
+    protected function createProject(GetOpt $getOpt, array $vars, string $target)
     {
         if (!file_exists($target)) {
             $this->makeDir($target);
@@ -175,13 +181,46 @@ class Skeleton
     }
 
     /**
+     * Creates and starts the development environment
+     *
+     * @param GetOpt $getOpt
+     */
+    protected function createDev(GetOpt $getOpt)
+    {
+        $vars = [
+            'baseName' => 'riki',
+            'binaryFile' => 'riki',
+            'basePath' => 'riki',
+            'projectName' => 'riki',
+            'sourceNamespace' => 'Riki',
+        ];
+        $target = realpath(__DIR__ . '/../build');
+
+        $this->deployFiles(__DIR__ . '/misc', $target, $vars);
+        foreach (array_keys(self::AVAILABLE_FEATURES) as $feature) {
+            $this->deployFiles(__DIR__ . '/' . $feature, $target, $vars);
+        }
+        $this->deployFiles(__DIR__ . '/dev', $target, $vars);
+
+        $this->rename($target . '/bin/cli', $target . '/bin/' . $vars['binaryFile']);
+        $this->chmod($target . '/bin/' . $vars['binaryFile'], umask() ^ 0777 | 0111);
+
+        if ($getOpt->getOption('start')) {
+            // start the environment
+            chdir($target);
+            passthru('composer update');
+            passthru('docker-compose build');
+            passthru('docker-compose start');
+        }
+    }
+
+    /**
      * @param array  $vars
      * @param string $target
      * @throws \Exception
      */
     protected function deploy(array $vars, string $target)
     {
-        $vars['projectRoot'] = realpath($target) ?: $target;
         $vars['baseName'] = $baseName = basename($target);
         $vars['binaryFile'] = $binaryFile = $baseName;
         $vars['basePath'] = $baseName;
@@ -527,17 +566,6 @@ class Skeleton
             $this->removeRecursive($filePath);
         }
         return rmdir($path);
-    }
-
-    protected function cleanupGitignore(string $path)
-    {
-        $file = file($path);
-        $commentLine = array_search("### remove all this\n", $file);
-        if ($this->pretend) {
-            $this->info(sprintf('removing all lines from gitignore beginning in line %d', $commentLine));
-            return;
-        }
-        file_put_contents($path, implode('', array_slice($file, 0, $commentLine)));
     }
 
     protected function isExcluded(string $path)

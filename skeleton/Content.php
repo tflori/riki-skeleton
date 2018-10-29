@@ -32,7 +32,7 @@ class Content
      */
     public function json(array $content): Content
     {
-        $this->content = json_encode($content, JSON_PRETTY_PRINT);
+        $this->content = json_encode($content, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
         return $this;
     }
 
@@ -49,7 +49,7 @@ class Content
         $this->content = json_encode(ArrayMerger::doMerge(
             json_decode($this->content, true) ?? [],
             $additional
-        ), JSON_PRETTY_PRINT);
+        ), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
         return $this;
     }
 
