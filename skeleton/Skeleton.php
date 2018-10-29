@@ -196,6 +196,8 @@ class Skeleton
         ];
         $target = realpath(__DIR__ . '/../build');
 
+        $this->info('Building development environment in path ' . $target);
+
         $this->deployFiles(__DIR__ . '/misc', $target, $vars);
         foreach (array_keys(self::AVAILABLE_FEATURES) as $feature) {
             $this->deployFiles(__DIR__ . '/' . $feature, $target, $vars);
