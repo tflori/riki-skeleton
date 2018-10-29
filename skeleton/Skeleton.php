@@ -191,10 +191,10 @@ class Skeleton
             'baseName' => 'riki',
             'binaryFile' => 'riki',
             'basePath' => 'riki',
-            'projectName' => 'riki',
+            'projectName' => 'nobody/riki',
             'sourceNamespace' => 'Riki',
         ];
-        $target = realpath(__DIR__ . '/../build');
+        $target = realpath(__DIR__ . '/../riki-dev');
 
         $this->info('Building development environment in path ' . $target);
 

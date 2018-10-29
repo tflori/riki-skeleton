@@ -15,7 +15,7 @@ matrix:
 before_script:
   - composer install --no-interaction --no-dev
   - php skeleton/riki-skeleton dev
-  - cd build
+  - cd riki-dev
   - composer install --no-interaction
   - sh -c 'if [ "$TRAVIS_PHP_VERSION" = "7.1" ]; then composer require satooshi/php-coveralls:~0.6@stable; fi;'
   - mkdir -p build/logs

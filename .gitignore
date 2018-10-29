@@ -2,6 +2,6 @@
 /docker-compose.yml
 /.env
 composer.lock
-/build/*
-!/build/app
+/riki-dev/*
+!/riki-dev/app
 /skeleton/dev/docker-compose.yml
