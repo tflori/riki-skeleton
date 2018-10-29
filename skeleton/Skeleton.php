@@ -165,8 +165,9 @@ class Skeleton
      * @param array $vars
      * @param string $target
      */
-    protected function createProject(GetOpt $getOpt, array $vars, string $target)
+    protected function createProject(GetOpt $getOpt, array $vars)
     {
+        $target = $getOpt->getOperand('target');
         if (!file_exists($target)) {
             $this->makeDir($target);
         } elseif (count(scandir($target)) !== 2) {
