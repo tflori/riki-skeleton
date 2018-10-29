@@ -157,12 +157,7 @@ class Skeleton
         $this->remove($target . '/skeleton');
         $this->remove($target . '/composer.lock');
         $this->remove($target . '/vendor');
-        $this->remove($target . '/docker-compose.dev.example.yml');
-        $this->remove($target . '/docker.dev');
-        $this->remove($target . '/composer.dev.json');
-        if (file_exists($target . '/.git')) {
-            $this->remove($target . '/.git');
-        }
+        $this->remove($target . '/.git');
     }
 
     /**
@@ -523,6 +518,10 @@ class Skeleton
     {
         if ($this->pretend) {
             $this->info('remove ' . $path);
+            return;
+        }
+
+        if (!file_exists($path)) {
             return;
         }
 
