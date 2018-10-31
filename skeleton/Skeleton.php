@@ -158,6 +158,7 @@ class Skeleton
         $this->remove($target . '/composer.lock');
         $this->remove($target . '/vendor');
         $this->remove($target . '/.git');
+        $this->remove($target . '/.travis.yml');
     }
 
     /**
