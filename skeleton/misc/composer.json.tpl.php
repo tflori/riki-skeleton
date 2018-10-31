@@ -16,7 +16,7 @@ $content->json([
   'require' => [
     'php' => '^7.1',
     'ext-mbstring' => '*',
-    'tflori/riki-framework' => '1.0.0-alpha.3',
+    'tflori/riki-framework' => '1.0.0-rc.1',
     'filp/whoops' => '^2.2',
     'monolog/monolog' => '^1.9',
   ],
