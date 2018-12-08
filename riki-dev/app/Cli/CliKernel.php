@@ -104,6 +104,9 @@ class CliKernel extends \App\Kernel
             ]);
 
             foreach (static::$commands as $class) {
+                if (!class_exists($class)) {
+                    continue; // avoid errors for deleted commands
+                }
                 $getOpt->addCommand($app->make($class, $app, $app->console));
             }
         }
