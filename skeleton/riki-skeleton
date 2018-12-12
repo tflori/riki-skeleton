@@ -3,6 +3,24 @@
 
 use Skeleton\Skeleton;
 
+$autoloader = null;
+$path = realpath(__DIR__ . '/..');
+while ($path !== '/') {
+    if (file_exists($path . '/vendor/autoload.php')) {
+        $autoloader = require_once $path . '/vendor/autoload.php';
+    }
+    $path = realpath($path . '/..');
+}
+if (!$autoloader) {
+    fwrite(
+        STDERR,
+        'You need to set up the project dependencies using Composer:' . PHP_EOL . PHP_EOL .
+        '    composer install' . PHP_EOL . PHP_EOL .
+        'You can learn all about Composer on https://getcomposer.org/.' . PHP_EOL
+    );
+    die(1);
+}
+
 require __DIR__ . '/../vendor/autoload.php';
 require __DIR__ . '/Skeleton.php';
 require __DIR__ . '/Content.php';
