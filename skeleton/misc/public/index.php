@@ -1,9 +1,12 @@
 <?php
 
+use App\Application;
+use App\Http\HttpKernel;
+
 require __DIR__ . '/../vendor/autoload.php';
 
-$app = new \App\Application(realPath(__DIR__ . '/..'));
-$kernel = new \App\Http\HttpKernel();
+$app = new Application(realPath(__DIR__ . '/..'));
+$kernel = new HttpKernel($app);
 $response = $app->run($kernel);
 
 // @todo send the response

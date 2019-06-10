@@ -3,14 +3,19 @@
 namespace App\Http;
 
 use App\Application;
+use App\Kernel;
 use Whoops\Handler\Handler;
 use Whoops\Handler\PrettyPageHandler;
 
-class HttpKernel extends \App\Kernel
+class HttpKernel extends Kernel
 {
-    public function __construct()
+    /** @var Application */
+    protected $app;
+
+    public function __construct(Application $app)
     {
-        // $this->addBootstrappers();
+        parent::__construct($app);
+        // bootstrap the kernel
     }
 
     // @todo this should return a response object
@@ -31,9 +36,9 @@ class HttpKernel extends \App\Kernel
         ];
     }
 
-    public function getErrorHandlers(Application $app): array
+    public function getErrorHandlers(): array
     {
-        if ($app->environment->canShowErrors()) {
+        if ($this->app->environment->canShowErrors()) {
             $handler = new PrettyPageHandler();
             // $handler->setEditor(...)
             return [$handler];

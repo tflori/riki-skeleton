@@ -11,7 +11,7 @@ abstract class TestCase extends \Test\TestCase
     protected function get(string $uri, array $query = []): ServerResponseInterface
     {
         $request = (new ServerRequest('get', $uri, []))->withQueryParams($query);
-        $kernel = new HttpKernel();
+        $kernel = new HttpKernel($this->app);
         return $this->app->run($kernel, $request);
     }
 }

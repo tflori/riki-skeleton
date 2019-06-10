@@ -35,7 +35,6 @@ class ApplicationTest extends TestCase
         $handlersBefore = $this->app->whoops->getHandlers();
         $kernelHandlers = [new PlainTextHandler()];
         $kernel = m::mock(Kernel::class);
-        $kernel->shouldReceive('getBootstrappers')->andReturn([]);
         $kernel->shouldReceive('getErrorHandlers')->with($this->app)
             ->once()->andReturn($kernelHandlers);
 

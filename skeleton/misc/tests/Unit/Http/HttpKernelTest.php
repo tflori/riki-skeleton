@@ -11,10 +11,10 @@ class HttpKernelTest extends TestCase
     /** @test */
     public function definesACustomErrorHandler()
     {
-        $kernel = new HttpKernel();
+        $kernel = new HttpKernel($this->app);
         $this->app->environment->shouldReceive('canShowErrors')->andReturn(false);
 
-        $result = $kernel->getErrorHandlers($this->app);
+        $result = $kernel->getErrorHandlers();
 
         self::assertInstanceOf(\Closure::class, $result[0]);
     }
@@ -22,10 +22,10 @@ class HttpKernelTest extends TestCase
     /** @test */
     public function definesAPrettyPageHandler()
     {
-        $kernel = new HttpKernel();
+        $kernel = new HttpKernel($this->app);
         $this->app->environment->shouldReceive('canShowErrors')->andReturn(true);
 
-        $result = $kernel->getErrorHandlers($this->app);
+        $result = $kernel->getErrorHandlers();
 
         self::assertInstanceOf(PrettyPageHandler::class, $result[0]);
     }

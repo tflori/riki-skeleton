@@ -4,13 +4,18 @@ namespace App\Cli;
 
 use App\Application;
 use App\Cli\Command;
+use App\Kernel;
 use Whoops\Handler\PlainTextHandler;
 
-class CliKernel extends \App\Kernel
+class CliKernel extends Kernel
 {
-    public function __construct()
+    /** @var Application */
+    protected $app;
+
+    public function __construct(Application $app)
     {
-        // $this->addBootstrappers();
+        parent::__construct($app);
+        // bootstrap the kernel
     }
 
     public function handle($arguments = null): int
@@ -28,7 +33,7 @@ class CliKernel extends \App\Kernel
         return 0;
     }
 
-    public function getErrorHandlers(Application $app): array
+    public function getErrorHandlers(): array
     {
         return [new PlainTextHandler()];
     }

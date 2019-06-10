@@ -11,8 +11,7 @@ class TestCase extends \Test\TestCase
 {
     protected function start(...$arguments)
     {
-        $kernel = new CliKernel();
-        $this->bootstrap(...$kernel->getBootstrappers());
+        $kernel = new CliKernel($this->app);
 
         $stdout = fopen('php://memory', 'w+');
         $stderr = fopen('php://memory', 'w+');

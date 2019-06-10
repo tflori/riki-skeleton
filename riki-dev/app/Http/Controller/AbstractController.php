@@ -11,14 +11,18 @@ use Tal\ServerResponse;
 
 abstract class AbstractController implements RequestHandlerInterface
 {
+    /** @var Application */
+    protected $app;
+
     /** @var ServerRequestInterface */
     protected $request;
 
     /** @var string */
     protected $action;
 
-    public function __construct($action = 'getIndex')
+    public function __construct(Application $app, $action = 'getIndex')
     {
+        $this->app = $app;
         $this->action = $action;
     }
 
@@ -68,7 +72,7 @@ abstract class AbstractController implements RequestHandlerInterface
     protected function buildHtmlErrorPage(int $status, string $title, string $message, $exception = null)
     {
         ob_start();
-        include Application::environment()->viewPath('error.php');
+        include $this->app->environment->viewPath('error.php');
         return ob_get_clean();
     }
 }

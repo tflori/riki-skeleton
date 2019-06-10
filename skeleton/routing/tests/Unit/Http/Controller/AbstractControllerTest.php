@@ -13,7 +13,7 @@ class AbstractControllerTest extends TestCase
     /** @test */
     public function throwsWhenActionNotFound()
     {
-        $controller = new ErrorController('anyMethod');
+        $controller = new ErrorController($this->app, 'anyMethod');
 
         self::expectException(\Exception::class);
         self::expectExceptionMessage('Action anyMethod is unknown in ' . ErrorController::class);
@@ -24,7 +24,7 @@ class AbstractControllerTest extends TestCase
     /** @test */
     public function callsActionWithArguments()
     {
-        $controller = m::mock(ErrorController::class, ['unexpectedError'])->makePartial();
+        $controller = m::mock(ErrorController::class, [$this->app, 'unexpectedError'])->makePartial();
         $request = m::mock(ServerRequest::class);
         $exception = new \Exception('Foo Bar');
 

@@ -4,5 +4,5 @@ namespace App;
 
 abstract class Kernel extends \Riki\Kernel
 {
-    abstract public function getErrorHandlers(Application $app): array;
+    abstract public function getErrorHandlers(): array;
 }

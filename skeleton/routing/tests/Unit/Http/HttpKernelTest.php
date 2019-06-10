@@ -2,6 +2,7 @@
 
 namespace Test\Unit\Http;
 
+use App\Application;
 use App\Http\Controller\ErrorController;
 use App\Http\Dispatcher;
 use App\Http\HttpKernel;
@@ -13,6 +14,7 @@ use FastRoute\RouteParser\Std;
 use Tal\Psr7Extended\ServerRequestInterface;
 use Tal\ServerRequest;
 use Tal\ServerResponse;
+use Test\Example\CustomController;
 use Test\TestCase;
 use Whoops\Handler\Handler;
 use Whoops\Handler\PrettyPageHandler;
@@ -23,10 +25,10 @@ class HttpKernelTest extends TestCase
     /** @test */
     public function definesACustomErrorHandler()
     {
-        $kernel = new HttpKernel();
+        $kernel = new HttpKernel($this->app);
         $this->app->environment->shouldReceive('canShowErrors')->andReturn(false);
 
-        $result = $kernel->getErrorHandlers($this->app);
+        $result = $kernel->getErrorHandlers();
 
         self::assertInstanceOf(\Closure::class, $result[0]);
     }
@@ -34,10 +36,10 @@ class HttpKernelTest extends TestCase
     /** @test */
     public function definesAPrettyPageHandler()
     {
-        $kernel = new HttpKernel();
+        $kernel = new HttpKernel($this->app);
         $this->app->environment->shouldReceive('canShowErrors')->andReturn(true);
 
-        $result = $kernel->getErrorHandlers($this->app);
+        $result = $kernel->getErrorHandlers();
 
         self::assertInstanceOf(PrettyPageHandler::class, $result[0]);
     }
@@ -54,7 +56,7 @@ class HttpKernelTest extends TestCase
         $response->shouldReceive('send')->with()
             ->once();
 
-        $kernel = new HttpKernel();
+        $kernel = new HttpKernel($this->app);
         $this->app->environment->shouldReceive('canShowErrors')->andReturn(false);
         $handler = $kernel->getErrorHandlers($this->app)[0];
 
@@ -68,7 +70,9 @@ class HttpKernelTest extends TestCase
      * @test */
     public function returnsTheCallable(callable $callable)
     {
-        $result = HttpKernel::getHandler($callable);
+        $httpKernel = new HttpKernel($this->app);
+
+        $result = $httpKernel->getHandler($callable);
 
         self::assertSame($callable, $result);
     }
@@ -77,11 +81,11 @@ class HttpKernelTest extends TestCase
     {
         return [
             ['strlen'],
-            [[HttpKernel::class, 'getHandler']],
+            [[CustomController::class, 'doSomething']],
             [function () {
             }],
-            [HttpKernel::class . '::' . 'getHandler'],
-            [[new ErrorController('unexpectedError'), 'handle']],
+            [CustomController::class . '::' . 'doSomething'],
+            [[new ErrorController(m::mock(Application::class), 'unexpectedError'), 'handle']],
         ];
     }
 
@@ -93,11 +97,12 @@ class HttpKernelTest extends TestCase
             return;
         }
 
-        $errorController = new ErrorController('unexpectedError');
-        $this->app->shouldReceive('make')->with(ErrorController::class, 'unexpectedError')
+        $errorController = new ErrorController($this->app, 'unexpectedError');
+        $this->app->shouldReceive('make')->with(ErrorController::class, $this->app, 'unexpectedError')
             ->once()->andReturn($errorController);
+        $httpKernel = new HttpKernel($this->app);
 
-        $result = HttpKernel::getHandler([ErrorController::class, 'unexpectedError']);
+        $result = $httpKernel->getHandler([ErrorController::class, 'unexpectedError']);
 
         self::assertSame($errorController, $result);
     }
@@ -105,22 +110,26 @@ class HttpKernelTest extends TestCase
     /** @test */
     public function throwsWhenClassDoesNotExist()
     {
+        $httpKernel = new HttpKernel($this->app);
+
         self::expectException(\InvalidArgumentException::class);
         self::expectExceptionMessage('Class FooClass not found');
 
-        HttpKernel::getHandler('FooClass');
+        $httpKernel->getHandler('FooClass');
     }
 
     /** @test */
     public function createsClassWithArguments()
     {
+        $httpKernel = new HttpKernel($this->app);
+
         $routeParser = new Std();
         $dataGenerator = new MiddlewareDataGenerator();
         $routeCollector = new MiddlewareRouteCollector($routeParser, $dataGenerator);
         $this->app->shouldReceive('make')->with(MiddlewareRouteCollector::class, $routeParser, $dataGenerator)
             ->once()->andReturn($routeCollector);
 
-        $result = HttpKernel::getHandler([MiddlewareRouteCollector::class, $routeParser, $dataGenerator]);
+        $result = $httpKernel->getHandler([MiddlewareRouteCollector::class, $routeParser, $dataGenerator]);
 
         self::assertSame($routeCollector, $result);
     }
@@ -128,21 +137,25 @@ class HttpKernelTest extends TestCase
     /** @test */
     public function acceptsTheControllerForm()
     {
-        $errorController = new ErrorController('unexpectedError');
-        $this->app->shouldReceive('make')->with(ErrorController::class, 'unexpectedError')
+        $httpKernel = new HttpKernel($this->app);
+
+        $errorController = new ErrorController($this->app, 'unexpectedError');
+        $this->app->shouldReceive('make')->with(ErrorController::class, $this->app, 'unexpectedError')
             ->once()->andReturn($errorController);
 
-        HttpKernel::getHandler('unexpectedError@' . ErrorController::class);
+        $httpKernel->getHandler('unexpectedError@' . ErrorController::class);
     }
 
     /** @test */
     public function findsTheControllerInNamespace()
     {
-        $errorController = new ErrorController('unexpectedError');
-        $this->app->shouldReceive('make')->with(ErrorController::class, 'unexpectedError')
+        $httpKernel = new HttpKernel($this->app);
+
+        $errorController = new ErrorController($this->app, 'unexpectedError');
+        $this->app->shouldReceive('make')->with(ErrorController::class, $this->app, 'unexpectedError')
             ->once()->andReturn($errorController);
 
-        HttpKernel::getHandler('unexpectedError@ErrorController');
+        $httpKernel->getHandler('unexpectedError@ErrorController');
     }
 
     /** @test */
@@ -195,7 +208,7 @@ class HttpKernelTest extends TestCase
 
         /** @var HttpKernel|m\Mock $kernel */
         $kernel = $this->mocks['kernel'] = m::mock(HttpKernel::class)->makePartial();
-        $kernel->loadRoutes($this->app);
+        $kernel->__construct($this->app);
 
         /** @var Dispatcher|m\Mock $dispatcher */
         $dispatcher = $this->mocks['dispatcher'] = m::mock(Dispatcher::class);
@@ -206,7 +219,7 @@ class HttpKernelTest extends TestCase
 
         // second: creates the dispatcher
         $this->app->shouldReceive('make')
-            ->with(Dispatcher::class, $expectedHandlers, [HttpKernel::class, 'getHandler'])
+            ->with(Dispatcher::class, $expectedHandlers, [$kernel, 'getHandler'])
             ->once()->andReturn($dispatcher)->ordered();
 
         // third: dispatches the request to dispatcher

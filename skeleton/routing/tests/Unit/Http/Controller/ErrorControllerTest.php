@@ -12,7 +12,7 @@ class ErrorControllerTest extends TestCase
     /** @test */
     public function returns500Response()
     {
-        $errorController = new ErrorController();
+        $errorController = new ErrorController($this->app);
 
         self::assertSame(500, $errorController->unexpectedError()->getStatusCode());
     }
@@ -20,7 +20,7 @@ class ErrorControllerTest extends TestCase
     /** @test */
     public function rendersUnexpectedError()
     {
-        $errorController = new ErrorController();
+        $errorController = new ErrorController($this->app);
 
         $body = $errorController->unexpectedError()->getBody()->getContents();
 
@@ -30,7 +30,7 @@ class ErrorControllerTest extends TestCase
     /** @test */
     public function returns404Response()
     {
-        $errorController = new ErrorController('notFound');
+        $errorController = new ErrorController($this->app, 'notFound');
         $request = new ServerRequest('GET', '/any/path');
 
         self::assertSame(404, $errorController->handle($request)->getStatusCode());
@@ -39,7 +39,7 @@ class ErrorControllerTest extends TestCase
     /** @test */
     public function rendersNotFoundError()
     {
-        $errorController = new ErrorController('notFound');
+        $errorController = new ErrorController($this->app, 'notFound');
         $request = new ServerRequest('GET', '/any/path');
 
         $body = $errorController->handle($request)->getBody()->getContents();
@@ -51,7 +51,7 @@ class ErrorControllerTest extends TestCase
     /** @test */
     public function returns405Response()
     {
-        $errorController = new ErrorController('methodNotAllowed');
+        $errorController = new ErrorController($this->app, 'methodNotAllowed');
         $request = (new ServerRequest('POST', '/any/path'))
             ->withAttribute('arguments', ['allowedMethods' => ['GET']]);
 
@@ -61,7 +61,7 @@ class ErrorControllerTest extends TestCase
     /** @test */
     public function rendersMethodNotAllowed()
     {
-        $errorController = new ErrorController('methodNotAllowed');
+        $errorController = new ErrorController($this->app, 'methodNotAllowed');
         $request = (new ServerRequest('POST', '/any/path'))
             ->withAttribute('arguments', ['allowedMethods' => ['GET']]);
 

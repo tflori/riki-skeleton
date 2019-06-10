@@ -63,16 +63,6 @@ abstract class TestCase extends MockeryTestCase
     }
 
     /**
-     * @param callable ...$bootstrappers
-     */
-    protected function bootstrap(callable ...$bootstrappers)
-    {
-        foreach ($bootstrappers as $bootstrapper) {
-            call_user_func($bootstrapper, $this->app);
-        }
-    }
-
-    /**
      * Overwrite a protected or private $property from $object to $value
      *
      * @param object $object

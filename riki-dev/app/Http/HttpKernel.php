@@ -19,17 +19,59 @@ class HttpKernel extends \App\Kernel
 {
     const CONTROLLER_NAMESPACE = 'App\Http\Controller';
 
+    /** @var Application */
+    protected $app;
+
     /** @var ServerRequest */
     protected static $lastRequest;
 
     /** @var MiddlewareRouter */
     protected $router;
 
-    public function __construct()
+    public function __construct(Application $app)
     {
-        $this->addBootstrappers(
-            [$this, 'loadRoutes']
-        );
+        parent::__construct($app);
+        // bootstrap the kernel
+    }
+
+    public function handle(ServerRequest $request = null): ResponseInterface
+    {
+        if (!$request) {
+            // During tests we don't create a request object from super globals
+            // @codeCoverageIgnoreStart
+            $request = ServerRequest::fromGlobals();
+            // @codeCoverageIgnoreEnd
+        }
+
+        self::$lastRequest = $request;
+
+        $handlers = [];
+        $arguments = [];
+        $result = $this->getRouter()->dispatch($request->getMethod(), $request->getRelativePath());
+        switch ($result[0]) {
+            case FastRoute\Dispatcher::FOUND:
+                list(, $handlers, $arguments) = $result;
+                break;
+
+            case FastRoute\Dispatcher::METHOD_NOT_ALLOWED:
+                list(, $allowedMethods, $handlers) = $result;
+                $handlers[] = [ErrorController::class, 'methodNotAllowed'];
+                $arguments = ['allowedMethods' => $allowedMethods];
+                break;
+
+            case FastRoute\Dispatcher::NOT_FOUND:
+                list(, $handlers) = $result;
+                $handlers[] = [ErrorController::class, 'notFound'];
+                break;
+        }
+
+        if (!empty($arguments)) {
+            $request = $request->withAttribute('arguments', $arguments);
+        }
+
+        return Application::app()
+            ->make(Dispatcher::class, $handlers, [$this, 'getHandler'])
+            ->handle($request);
     }
 
     /**
@@ -38,7 +80,7 @@ class HttpKernel extends \App\Kernel
      * @param string|array|callable $handler
      * @return RequestHandlerInterface|MiddlewareInterface|callable
      */
-    public static function getHandler($handler)
+    public function getHandler($handler)
     {
         if (is_callable($handler)) {
             switch (gettype($handler)) {
@@ -89,52 +131,16 @@ class HttpKernel extends \App\Kernel
             $class = self::CONTROLLER_NAMESPACE . '\\' . $class;
         }
 
-        return Application::app()->make($class, ...$args);
+        if (substr($class, 0, strlen(self::CONTROLLER_NAMESPACE)) === self::CONTROLLER_NAMESPACE) {
+            array_unshift($args, $this->app);
+        }
+
+        return $this->app->make($class, ...$args);
     }
 
-    public function handle(ServerRequest $request = null): ResponseInterface
+    public function getErrorHandlers(): array
     {
-        if (!$request) {
-            // During tests we don't create a request object from super globals
-            // @codeCoverageIgnoreStart
-            $request = ServerRequest::fromGlobals();
-            // @codeCoverageIgnoreEnd
-        }
-
-        self::$lastRequest = $request;
-
-        $handlers = [];
-        $arguments = [];
-        $result = $this->router->dispatch($request->getMethod(), $request->getRelativePath());
-        switch ($result[0]) {
-            case FastRoute\Dispatcher::FOUND:
-                list(, $handlers, $arguments) = $result;
-                break;
-
-            case FastRoute\Dispatcher::METHOD_NOT_ALLOWED:
-                list(, $allowedMethods, $handlers) = $result;
-                $handlers[] = [ErrorController::class, 'methodNotAllowed'];
-                $arguments = ['allowedMethods' => $allowedMethods];
-                break;
-
-            case FastRoute\Dispatcher::NOT_FOUND:
-                list(, $handlers) = $result;
-                $handlers[] = [ErrorController::class, 'notFound'];
-                break;
-        }
-
-        if (!empty($arguments)) {
-            $request = $request->withAttribute('arguments', $arguments);
-        }
-
-        return Application::app()
-            ->make(Dispatcher::class, $handlers, [self::class, 'getHandler'])
-            ->handle($request);
-    }
-
-    public function getErrorHandlers(Application $app): array
-    {
-        if ($app->environment->canShowErrors()) {
+        if ($this->app->environment->canShowErrors()) {
             $handler = new PrettyPageHandler();
             // $handler->setEditor(...)
             return [$handler];
@@ -150,18 +156,18 @@ class HttpKernel extends \App\Kernel
         }
     }
 
-    public function loadRoutes(Application $app): bool
+    public function getRouter(): MiddlewareRouter
     {
         if (!$this->router) {
             // @todo implement caching for $routeCollector->getData()
-            $dataGenerator = $app->make(MiddlewareDataGenerator::class);
-            $routeParser = $app->make(FastRoute\RouteParser\Std::class);
-            $routeCollector = $app->make(MiddlewareRouteCollector::class, $routeParser, $dataGenerator);
+            $dataGenerator = $this->app->make(MiddlewareDataGenerator::class);
+            $routeParser = $this->app->make(FastRoute\RouteParser\Std::class);
+            $routeCollector = $this->app->make(MiddlewareRouteCollector::class, $routeParser, $dataGenerator);
             self::collectRoutes($routeCollector);
-            $this->router = $app->make(MiddlewareRouter::class, $routeCollector->getData());
+            $this->router = $this->app->make(MiddlewareRouter::class, $routeCollector->getData());
         }
 
-        return true;
+        return $this->router;
     }
 
     protected static function collectRoutes(MiddlewareRouteCollector $router)

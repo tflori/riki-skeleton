@@ -4,11 +4,9 @@ namespace Test\Unit\Cli;
 
 use App\Cli\CliKernel;
 use App\Exception\ConsoleHandler;
-use GetOpt\ArgumentException\Missing;
 use GetOpt\Command;
 use GetOpt\GetOpt;
 use GetOpt\Operand;
-use GetOpt\Option;
 use Hugga\Console;
 use Test\TestCase;
 use Mockery as m;
@@ -21,8 +19,7 @@ class CliKernelTest extends TestCase
     protected function setUp()
     {
         parent::setUp();
-        $this->kernel = new CliKernel();
-        $this->kernel->loadCommands($this->app);
+        $this->kernel = new CliKernel($this->app);
     }
 
     protected function initDependencies()
@@ -56,10 +53,7 @@ class CliKernelTest extends TestCase
      * @test */
     public function registersDefaultOptions($short, $long)
     {
-        /** @var GetOpt|m\Mock $getOpt */
-        $getOpt = $this->mocks['getOpt'];
-
-        $this->kernel->loadCommands($this->app);
+        $getOpt = $this->kernel->getGetOpt();
 
         self::assertSame($short, $getOpt->getOptionObject($long)->getShort());
     }

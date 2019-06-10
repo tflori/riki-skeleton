@@ -8,7 +8,7 @@ class TestCase extends \Test\TestCase
 {
     protected function start(...$arguments)
     {
-        $kernel = new CliKernel();
+        $kernel = new CliKernel($this->app);
         ob_start();
         $returnVar = $this->app->run($kernel, $arguments);
         return ['returnVar' => $returnVar, 'output' => ob_get_clean()];

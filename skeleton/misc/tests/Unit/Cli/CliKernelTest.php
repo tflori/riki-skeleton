@@ -11,9 +11,9 @@ class CliKernelTest extends TestCase
     /** @test */
     public function definesAPlainTextHandler()
     {
-        $kernel = new CliKernel();
+        $kernel = new CliKernel($this->app);
 
-        $result = $kernel->getErrorHandlers($this->app);
+        $result = $kernel->getErrorHandlers();
 
         self::assertInstanceOf(PlainTextHandler::class, $result[0]);
     }

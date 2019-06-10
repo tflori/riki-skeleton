@@ -57,7 +57,7 @@ class DispatcherTest extends TestCase
     public function resolvesHandlerWithResolver()
     {
         $httpKernel = m::mock(HttpKernel::class);
-        $errorController = new ErrorController('unexpectedError');
+        $errorController = new ErrorController($this->app, 'unexpectedError');
 
         $dispatcher = new Dispatcher([
             'unexpectedError@ErrorController',

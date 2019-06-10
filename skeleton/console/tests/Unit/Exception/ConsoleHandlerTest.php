@@ -3,7 +3,6 @@
 namespace Test\Unit\Exception;
 
 use App\Exception\ConsoleHandler;
-use App\Http\Router\MiddlewareRouteCollector;
 use Hugga\Console;
 use RuntimeException;
 use Test\TestCase;
@@ -143,7 +142,7 @@ class ConsoleHandlerTest extends TestCase
         $handler = $this->prepareHandler($getException(
             ['anything'],
             'a too long string will be cut off at 20 chars',
-            MiddlewareRouteCollector::class,
+            ConsoleHandler::class,
             23,
             0.42,
             false,
@@ -161,7 +160,7 @@ class ConsoleHandlerTest extends TestCase
                 $args = $match[1];
                 self::assertContains('array', $args);
                 self::assertContains('"a too long string wi…"', $args);
-                self::assertContains('"App\Http\Router\MiddlewareRouteCollector"', $args);
+                self::assertContains('"App\Exception\ConsoleHandler"', $args);
                 self::assertContains('23', $args);
                 self::assertContains('0.42', $args);
                 self::assertContains('false', $args);
