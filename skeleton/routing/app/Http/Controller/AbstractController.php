@@ -6,10 +6,9 @@ use App\Application;
 use function GuzzleHttp\Psr7\stream_for;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\RequestHandlerInterface;
 use Tal\ServerResponse;
 
-abstract class AbstractController implements RequestHandlerInterface
+abstract class AbstractController
 {
     /** @var Application */
     protected $app;
@@ -24,21 +23,6 @@ abstract class AbstractController implements RequestHandlerInterface
     {
         $this->app = $app;
         $this->action = $action;
-    }
-
-    public function handle(ServerRequestInterface $request): ResponseInterface
-    {
-        $this->request = $request;
-        $action = $this->action;
-
-        if (!method_exists($this, $action)) {
-            throw new \Exception(sprintf('Action %s is unknown in %s', $action, static::class));
-        }
-
-        $arguments = $request->getAttribute('arguments') ?? [];
-        $response = call_user_func([$this, $action], ...array_values($arguments));
-
-        return $response;
     }
 
     /**

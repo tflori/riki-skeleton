@@ -2,6 +2,7 @@ language: php
 php:
   - 7.1
   - 7.2
+  - 7.3
 
 sudo: false
 
@@ -19,7 +20,6 @@ before_script:
   - composer install --no-interaction
   - sh -c 'if [ "$TRAVIS_PHP_VERSION" = "7.1" ]; then composer require satooshi/php-coveralls:~0.6@stable; fi;'
   - mkdir -p build/logs
-
 script:
   - composer code-style
   - bin/phpunit -c phpunit.xml --color=always --coverage-clover=build/logs/clover.xml --coverage-text
