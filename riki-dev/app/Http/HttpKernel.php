@@ -172,7 +172,7 @@ class HttpKernel extends \App\Kernel
      * @param callable $callable
      * @return bool
      */
-    protected function isStatic(callable $callable): bool
+    protected function isStatic($callable): bool
     {
         if (is_array($callable)) {
             list($class, $method) = $callable;

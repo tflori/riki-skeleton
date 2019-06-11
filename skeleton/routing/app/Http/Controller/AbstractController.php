@@ -4,7 +4,6 @@ namespace App\Http\Controller;
 
 use App\Application;
 use function GuzzleHttp\Psr7\stream_for;
-use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Tal\ServerResponse;
 
