@@ -2,7 +2,6 @@
 
 namespace App;
 
-use Http\Response;
 use Hugga\Console;
 use Monolog\Logger;
 use Whoops;

@@ -2,7 +2,6 @@
 
 namespace App;
 
-use Http\Response;
 use Monolog\Logger;
 use Whoops;
 use Whoops\Handler\PlainTextHandler;
