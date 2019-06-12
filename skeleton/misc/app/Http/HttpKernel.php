@@ -9,9 +9,6 @@ use Whoops\Handler\PrettyPageHandler;
 
 class HttpKernel extends Kernel
 {
-    /** @var Application */
-    protected $app;
-
     public function __construct(Application $app)
     {
         parent::__construct($app);
