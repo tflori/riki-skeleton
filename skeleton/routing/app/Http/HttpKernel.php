@@ -19,9 +19,6 @@ class HttpKernel extends \App\Kernel
 {
     const CONTROLLER_NAMESPACE = 'App\Http\Controller';
 
-    /** @var Application */
-    protected $app;
-
     /** @var ServerRequest */
     protected static $lastRequest;
 

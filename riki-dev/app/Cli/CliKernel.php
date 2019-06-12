@@ -14,9 +14,6 @@ use Hugga\Console;
 
 class CliKernel extends \App\Kernel
 {
-    /** @var Application */
-    protected $app;
-
     /** @var string[] */
     protected static $commands = [
         Command\Config\Cache::class,
