@@ -3,6 +3,7 @@
 namespace Test\Unit\Http;
 
 use App\Http\Controller\ErrorController;
+use App\Http\RequestHandler;
 use App\Http\Dispatcher;
 use App\Http\HttpKernel;
 use Psr\Http\Message\RequestInterface;
@@ -18,7 +19,7 @@ class DispatcherTest extends TestCase
     /** @test */
     public function throwsWhenCalledOnEmptyQueue()
     {
-        $dispatcher = new Dispatcher([], [HttpKernel::class, 'getHandler']);
+        $dispatcher = new Dispatcher([], [new HttpKernel($this->app), 'getHandler']);
 
         self::expectException(\LogicException::class);
         self::expectExceptionMessage('Queue is empty');
@@ -57,14 +58,14 @@ class DispatcherTest extends TestCase
     public function resolvesHandlerWithResolver()
     {
         $httpKernel = m::mock(HttpKernel::class);
-        $errorController = new ErrorController($this->app, 'unexpectedError');
+        $handler = new RequestHandler($this->app, ErrorController::class, 'unexpectedError');
 
         $dispatcher = new Dispatcher([
             'unexpectedError@ErrorController',
         ], [$httpKernel, 'getHandler']);
 
         $httpKernel->shouldReceive('getHandler')->with('unexpectedError@ErrorController')
-            ->once()->andReturn($errorController);
+            ->once()->andReturn($handler);
 
         $dispatcher->handle(new ServerRequest('GET', '/'));
     }
@@ -76,7 +77,7 @@ class DispatcherTest extends TestCase
             return new ServerResponse(333);
         });
 
-        $dispatcher = new Dispatcher([$spy], [HttpKernel::class, 'getHandler']);
+        $dispatcher = new Dispatcher([$spy], [new HttpKernel($this->app), 'getHandler']);
 
         $dispatcher->handle($request = new ServerRequest('GET', '/'));
 
