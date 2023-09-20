@@ -10,6 +10,6 @@ class NotFoundTest extends TestCase
         $response = $this->get('/any/route');
 
         self::assertSame(404, $response->getStatusCode());
-        self::assertContains('<h4>File Not Found</h4>', $response->getBody()->getContents());
+        self::assertStringContainsString('<h4>File Not Found</h4>', $response->getBody()->getContents());
     }
 }

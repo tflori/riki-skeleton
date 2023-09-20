@@ -10,13 +10,14 @@ $content->json([
   'description' => '',
   'type' => 'project',
   'license' => 'proprietary',
+  'minimum-stability' => 'rc',
   'config' => [
     'bin-dir' => 'bin',
   ],
   'require' => [
-    'php' => '^7.1',
+    'php' => '^7.1 || ^8.0',
     'ext-mbstring' => '*',
-    'tflori/riki-framework' => '1.0.0-rc.3',
+    'tflori/riki-framework' => '1.0.0-rc.8',
     'filp/whoops' => '^2.2',
     'monolog/monolog' => '^1.9',
   ],
@@ -27,7 +28,8 @@ $content->json([
     ]
   ],
   'require-dev' => [
-    'phpunit/phpunit' => '^7.2',
+    'phpunit/phpunit' => '*',
+    'tflori/phpunit-printer' => '*',
     'mockery/mockery' => '^1.1',
   ],
   'autoload-dev' => [

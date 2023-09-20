@@ -16,7 +16,7 @@ class CliKernelTest extends TestCase
     /** @var CliKernel */
     protected $kernel;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
         $this->kernel = new CliKernel($this->app);

@@ -79,7 +79,9 @@ class HttpKernel extends \App\Kernel
      */
     public function getHandler($handler)
     {
-        if (!is_string($handler) && !is_callable($handler)) {
+        if (!is_string($handler) && !is_callable($handler) && (
+            !is_array($handler) || !isset($handler[0]) || !isset($handler[1]) || !is_string($handler[1])
+        )) {
             throw new \InvalidArgumentException(
                 '$handler has to be a callable, a string in form "method@Controller" or a class name'
             );

@@ -9,6 +9,6 @@
 $content->mergeJson([
     'require' => [
         'ulrichsg/getopt-php' => '^3.2',
-        'tflori/hugga' => '1.0.0',
+        'tflori/hugga' => '^1.0.0',
     ]
 ]);

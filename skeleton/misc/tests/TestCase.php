@@ -20,13 +20,13 @@ abstract class TestCase extends MockeryTestCase
     /** @var string */
     protected $basePath;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
         $this->initApplication(realpath(__DIR__ . '/..'));
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         parent::tearDown();
         Application::app()->destroy();
@@ -52,6 +52,7 @@ abstract class TestCase extends MockeryTestCase
         $this->app->alias('environment', Environment::class);
 
         $this->mocks['config'] = m::mock(Config::class)->makePartial();
+        $this->mocks['config']->__construct($this->mocks['environment']);
         $this->app->instance('config', $this->mocks['config']);
         $this->app->alias('config', Config::class);
 
